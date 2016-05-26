@@ -426,10 +426,17 @@ var __extends = (this && this.__extends) || function (d, b) {
      * }
      * ```
      *
-     * Use Rx.Observable but provides an adapter to make it work as specified here:
+     * The events payload can be accessed by the parameter `$event` on the components output event handler:
+     *
+     * ```
+     * <zippy (open)="onOpen($event)" (close)="onClose($event)"></zippy>
+     * ```
+     *
+     * Uses Rx.Observable but provides an adapter to make it work as specified here:
      * https://github.com/jhusain/observable-spec
      *
      * Once a reference implementation of the spec is available, switch to it.
+     * @stable
      */
     var EventEmitter$1 = (function (_super) {
         __extends(EventEmitter$1, _super);
@@ -801,6 +808,9 @@ var __extends = (this && this.__extends) || function (d, b) {
             };
         }
     })();
+    /**
+     * @stable
+     */
     var BaseException = (function (_super) {
         __extends(BaseException, _super);
         function BaseException(message) {
@@ -825,9 +835,8 @@ var __extends = (this && this.__extends) || function (d, b) {
     var ObservableStrategy = (function () {
         function ObservableStrategy() {
         }
-        ObservableStrategy.prototype.createSubscription = function (async, updateLatestValue, onError) {
-            if (onError === void 0) { onError = function (e) { throw e; }; }
-            return ObservableWrapper.subscribe(async, updateLatestValue, onError);
+        ObservableStrategy.prototype.createSubscription = function (async, updateLatestValue) {
+            return ObservableWrapper.subscribe(async, updateLatestValue, function (e) { throw e; });
         };
         ObservableStrategy.prototype.dispose = function (subscription) { ObservableWrapper.dispose(subscription); };
         ObservableStrategy.prototype.onDestroy = function (subscription) { ObservableWrapper.dispose(subscription); };
@@ -836,9 +845,8 @@ var __extends = (this && this.__extends) || function (d, b) {
     var PromiseStrategy = (function () {
         function PromiseStrategy() {
         }
-        PromiseStrategy.prototype.createSubscription = function (async, updateLatestValue, onError) {
-            if (onError === void 0) { onError = function (e) { throw e; }; }
-            return async.then(updateLatestValue, onError);
+        PromiseStrategy.prototype.createSubscription = function (async, updateLatestValue) {
+            return async.then(updateLatestValue, function (e) { throw e; });
         };
         PromiseStrategy.prototype.dispose = function (subscription) { };
         PromiseStrategy.prototype.onDestroy = function (subscription) { };
@@ -864,17 +872,17 @@ var __extends = (this && this.__extends) || function (d, b) {
                 this._dispose();
             }
         };
-        AsyncPipe.prototype.transform = function (obj, onError) {
+        AsyncPipe.prototype.transform = function (obj) {
             if (isBlank(this._obj)) {
                 if (isPresent(obj)) {
-                    this._subscribe(obj, onError);
+                    this._subscribe(obj);
                 }
                 this._latestReturnedValue = this._latestValue;
                 return this._latestValue;
             }
             if (obj !== this._obj) {
                 this._dispose();
-                return this.transform(obj, onError);
+                return this.transform(obj);
             }
             if (this._latestValue === this._latestReturnedValue) {
                 return this._latestReturnedValue;
@@ -885,11 +893,11 @@ var __extends = (this && this.__extends) || function (d, b) {
             }
         };
         /** @internal */
-        AsyncPipe.prototype._subscribe = function (obj, onError) {
+        AsyncPipe.prototype._subscribe = function (obj) {
             var _this = this;
             this._obj = obj;
             this._strategy = this._selectStrategy(obj);
-            this._subscription = this._strategy.createSubscription(obj, function (value) { return _this._updateLatestValue(obj, value); }, onError);
+            this._subscription = this._strategy.createSubscription(obj, function (value) { return _this._updateLatestValue(obj, value); });
         };
         /** @internal */
         AsyncPipe.prototype._selectStrategy = function (obj) {
@@ -1043,12 +1051,23 @@ var __extends = (this && this.__extends) || function (d, b) {
             if (isNumber(value)) {
                 value = DateWrapper.fromMillis(value);
             }
+            else if (isString(value)) {
+                value = DateWrapper.fromISOString(value);
+            }
             if (StringMapWrapper.contains(DatePipe._ALIASES, pattern)) {
                 pattern = StringMapWrapper.get(DatePipe._ALIASES, pattern);
             }
             return DateFormatter.format(value, defaultLocale, pattern);
         };
-        DatePipe.prototype.supports = function (obj) { return isDate(obj) || isNumber(obj); };
+        DatePipe.prototype.supports = function (obj) {
+            if (isDate(obj) || isNumber(obj)) {
+                return true;
+            }
+            if (isString(obj) && isDate(DateWrapper.fromISOString(obj))) {
+                return true;
+            }
+            return false;
+        };
         return DatePipe;
     }());
     /** @internal */
@@ -1081,11 +1100,11 @@ var __extends = (this && this.__extends) || function (d, b) {
         }
         SlicePipe.prototype.transform = function (value, start, end) {
             if (end === void 0) { end = null; }
+            if (isBlank(value))
+                return value;
             if (!this.supports(value)) {
                 throw new InvalidPipeArgumentException(SlicePipe, value);
             }
-            if (isBlank(value))
-                return value;
             if (isString(value)) {
                 return StringWrapper.slice(value, start, end);
             }
@@ -2831,7 +2850,10 @@ var __extends = (this && this.__extends) || function (d, b) {
         };
         SelectControlValueAccessor.prototype.registerOnChange = function (fn) {
             var _this = this;
-            this.onChange = function (valueString) { fn(_this._getOptionValue(valueString)); };
+            this.onChange = function (valueString) {
+                _this.value = valueString;
+                fn(_this._getOptionValue(valueString));
+            };
         };
         SelectControlValueAccessor.prototype.registerOnTouched = function (fn) { this.onTouched = fn; };
         /** @internal */
@@ -2937,11 +2959,16 @@ var __extends = (this && this.__extends) || function (d, b) {
             ListWrapper.removeAt(this._accessors, indexToRemove);
         };
         RadioControlRegistry.prototype.select = function (accessor) {
+            var _this = this;
             this._accessors.forEach(function (c) {
-                if (c[0].control.root === accessor._control.control.root && c[1] !== accessor) {
+                if (_this._isSameGroup(c, accessor) && c[1] !== accessor) {
                     c[1].fireUncheck();
                 }
             });
+        };
+        RadioControlRegistry.prototype._isSameGroup = function (controlPair, accessor) {
+            return controlPair[0].control.root === accessor._control.control.root &&
+                controlPair[1].name === accessor.name;
         };
         return RadioControlRegistry;
     }());

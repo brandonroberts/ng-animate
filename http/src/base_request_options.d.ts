@@ -39,7 +39,7 @@ export declare class RequestOptions {
     /**
      * Body to be used when creating a {@link Request}.
      */
-    body: string;
+    body: any;
     /**
      * Url with which to perform a {@link Request}.
      */
@@ -48,7 +48,11 @@ export declare class RequestOptions {
      * Search parameters to be included in a {@link Request}.
      */
     search: URLSearchParams;
-    constructor({method, headers, body, url, search}?: RequestOptionsArgs);
+    /**
+     * Enable use credentials for a {@link Request}.
+     */
+    withCredentials: boolean;
+    constructor({method, headers, body, url, search, withCredentials}?: RequestOptionsArgs);
     /**
      * Creates a copy of the `RequestOptions` instance, using the optional input as values to override
      * existing values. This method will not change the values of the instance on which it is being

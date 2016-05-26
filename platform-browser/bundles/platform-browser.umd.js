@@ -47,6 +47,9 @@ var __extends = (this && this.__extends) || function (d, b) {
     function isBlank(obj) {
         return obj === undefined || obj === null;
     }
+    function isNumber(obj) {
+        return typeof obj === "number";
+    }
     function isString(obj) {
         return typeof obj === "string";
     }
@@ -402,29 +405,6 @@ var __extends = (this && this.__extends) || function (d, b) {
             return res;
         };
     })();
-    var MapWrapper = (function () {
-        function MapWrapper() {
-        }
-        MapWrapper.clone = function (m) { return createMapFromMap(m); };
-        MapWrapper.createFromStringMap = function (stringMap) {
-            var result = new Map$1();
-            for (var prop in stringMap) {
-                result.set(prop, stringMap[prop]);
-            }
-            return result;
-        };
-        MapWrapper.toStringMap = function (m) {
-            var r = {};
-            m.forEach(function (v, k) { return r[k] = v; });
-            return r;
-        };
-        MapWrapper.createFromPairs = function (pairs) { return createMapFromPairs(pairs); };
-        MapWrapper.clearValues = function (m) { _clearValues(m); };
-        MapWrapper.iterable = function (m) { return m; };
-        MapWrapper.keys = function (m) { return _arrayFromMap(m, false); };
-        MapWrapper.values = function (m) { return _arrayFromMap(m, true); };
-        return MapWrapper;
-    }());
     /**
      * Wraps Javascript Objects
      */
@@ -653,19 +633,21 @@ var __extends = (this && this.__extends) || function (d, b) {
         SetWrapper.delete = function (m, k) { m.delete(k); };
         return SetWrapper;
     }());
-    var BaseException = (function (_super) {
-        __extends(BaseException, _super);
-        function BaseException(message) {
+    /**
+     * @stable
+     */
+    var BaseException$1 = (function (_super) {
+        __extends(BaseException$1, _super);
+        function BaseException$1(message) {
             if (message === void 0) { message = "--"; }
             _super.call(this, message);
             this.message = message;
             this.stack = (new Error(message)).stack;
         }
-        BaseException.prototype.toString = function () { return this.message; };
-        return BaseException;
+        BaseException$1.prototype.toString = function () { return this.message; };
+        return BaseException$1;
     }(Error));
-    var EVENT_MANAGER_PLUGINS = 
-    /*@ts2dart_const*/ new _angular_core.OpaqueToken("EventManagerPlugins");
+    var EVENT_MANAGER_PLUGINS = new _angular_core.OpaqueToken("EventManagerPlugins");
     var EventManager = (function () {
         function EventManager(plugins, _zone) {
             var _this = this;
@@ -691,7 +673,7 @@ var __extends = (this && this.__extends) || function (d, b) {
                     return plugin;
                 }
             }
-            throw new BaseException("No event manager plugin found for event " + eventName);
+            throw new BaseException$1("No event manager plugin found for event " + eventName);
         };
         return EventManager;
     }());
@@ -879,8 +861,7 @@ var __extends = (this && this.__extends) || function (d, b) {
         };
         return HammerGesturesPluginCommon;
     }(EventManagerPlugin));
-    var HAMMER_GESTURE_CONFIG = 
-    /*@ts2dart_const*/ new _angular_core.OpaqueToken("HammerGestureConfig");
+    var HAMMER_GESTURE_CONFIG = new _angular_core.OpaqueToken("HammerGestureConfig");
     var HammerGestureConfig = (function () {
         function HammerGestureConfig() {
             this.events = [];
@@ -910,7 +891,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             if (!_super.prototype.supports.call(this, eventName) && !this.isCustomEvent(eventName))
                 return false;
             if (!isPresent(window['Hammer'])) {
-                throw new BaseException("Hammer.js is not loaded, can not bind " + eventName + " event");
+                throw new BaseException$1("Hammer.js is not loaded, can not bind " + eventName + " event");
             }
             return true;
         };
@@ -941,360 +922,9 @@ var __extends = (this && this.__extends) || function (d, b) {
     var DebugDomRootRenderer = _angular_core.__core_private__.DebugDomRootRenderer;
     var SecurityContext = _angular_core.__core_private__.SecurityContext;
     var SanitizationService = _angular_core.__core_private__.SanitizationService;
-    var CssAnimationOptions = (function () {
-        function CssAnimationOptions() {
-            /** classes to be added to the element */
-            this.classesToAdd = [];
-            /** classes to be removed from the element */
-            this.classesToRemove = [];
-            /** classes to be added for the duration of the animation */
-            this.animationClasses = [];
-        }
-        return CssAnimationOptions;
-    }());
-    var Math$1 = global$1.Math;
-    var CAMEL_CASE_REGEXP = /([A-Z])/g;
-    function camelCaseToDashCase(input) {
-        return StringWrapper.replaceAllMapped(input, CAMEL_CASE_REGEXP, function (m) { return '-' + m[1].toLowerCase(); });
-    }
-    var Animation = (function () {
-        /**
-         * Stores the start time and starts the animation
-         * @param element
-         * @param data
-         * @param browserDetails
-         */
-        function Animation(element, data, browserDetails) {
-            var _this = this;
-            this.element = element;
-            this.data = data;
-            this.browserDetails = browserDetails;
-            /** functions to be called upon completion */
-            this.callbacks = [];
-            /** functions for removing event listeners */
-            this.eventClearFunctions = [];
-            /** flag used to track whether or not the animation has finished */
-            this.completed = false;
-            this._stringPrefix = '';
-            this.startTime = DateWrapper.toMillis(DateWrapper.now());
-            this._stringPrefix = getDOM().getAnimationPrefix();
-            this.setup();
-            this.wait(function (timestamp) { return _this.start(); });
-        }
-        Object.defineProperty(Animation.prototype, "totalTime", {
-            /** total amount of time that the animation should take including delay */
-            get: function () {
-                var delay = this.computedDelay != null ? this.computedDelay : 0;
-                var duration = this.computedDuration != null ? this.computedDuration : 0;
-                return delay + duration;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Animation.prototype.wait = function (callback) {
-            // Firefox requires 2 frames for some reason
-            this.browserDetails.raf(callback, 2);
-        };
-        /**
-         * Sets up the initial styles before the animation is started
-         */
-        Animation.prototype.setup = function () {
-            if (this.data.fromStyles != null)
-                this.applyStyles(this.data.fromStyles);
-            if (this.data.duration != null)
-                this.applyStyles({ 'transitionDuration': this.data.duration.toString() + 'ms' });
-            if (this.data.delay != null)
-                this.applyStyles({ 'transitionDelay': this.data.delay.toString() + 'ms' });
-        };
-        /**
-         * After the initial setup has occurred, this method adds the animation styles
-         */
-        Animation.prototype.start = function () {
-            this.addClasses(this.data.classesToAdd);
-            this.addClasses(this.data.animationClasses);
-            this.removeClasses(this.data.classesToRemove);
-            if (this.data.toStyles != null)
-                this.applyStyles(this.data.toStyles);
-            var computedStyles = getDOM().getComputedStyle(this.element);
-            this.computedDelay =
-                Math$1.max(this.parseDurationString(computedStyles.getPropertyValue(this._stringPrefix + 'transition-delay')), this.parseDurationString(this.element.style.getPropertyValue(this._stringPrefix + 'transition-delay')));
-            this.computedDuration = Math$1.max(this.parseDurationString(computedStyles.getPropertyValue(this._stringPrefix + 'transition-duration')), this.parseDurationString(this.element.style.getPropertyValue(this._stringPrefix + 'transition-duration')));
-            this.addEvents();
-        };
-        /**
-         * Applies the provided styles to the element
-         * @param styles
-         */
-        Animation.prototype.applyStyles = function (styles) {
-            var _this = this;
-            StringMapWrapper.forEach(styles, function (value, key) {
-                var dashCaseKey = camelCaseToDashCase(key);
-                if (isPresent(getDOM().getStyle(_this.element, dashCaseKey))) {
-                    getDOM().setStyle(_this.element, dashCaseKey, value.toString());
-                }
-                else {
-                    getDOM().setStyle(_this.element, _this._stringPrefix + dashCaseKey, value.toString());
-                }
-            });
-        };
-        /**
-         * Adds the provided classes to the element
-         * @param classes
-         */
-        Animation.prototype.addClasses = function (classes) {
-            for (var i = 0, len = classes.length; i < len; i++)
-                getDOM().addClass(this.element, classes[i]);
-        };
-        /**
-         * Removes the provided classes from the element
-         * @param classes
-         */
-        Animation.prototype.removeClasses = function (classes) {
-            for (var i = 0, len = classes.length; i < len; i++)
-                getDOM().removeClass(this.element, classes[i]);
-        };
-        /**
-         * Adds events to track when animations have finished
-         */
-        Animation.prototype.addEvents = function () {
-            var _this = this;
-            if (this.totalTime > 0) {
-                this.eventClearFunctions.push(getDOM().onAndCancel(this.element, getDOM().getTransitionEnd(), function (event) { return _this.handleAnimationEvent(event); }));
-            }
-            else {
-                this.handleAnimationCompleted();
-            }
-        };
-        Animation.prototype.handleAnimationEvent = function (event) {
-            var elapsedTime = Math$1.round(event.elapsedTime * 1000);
-            if (!this.browserDetails.elapsedTimeIncludesDelay)
-                elapsedTime += this.computedDelay;
-            event.stopPropagation();
-            if (elapsedTime >= this.totalTime)
-                this.handleAnimationCompleted();
-        };
-        /**
-         * Runs all animation callbacks and removes temporary classes
-         */
-        Animation.prototype.handleAnimationCompleted = function () {
-            this.removeClasses(this.data.animationClasses);
-            this.callbacks.forEach(function (callback) { return callback(); });
-            this.callbacks = [];
-            this.eventClearFunctions.forEach(function (fn) { return fn(); });
-            this.eventClearFunctions = [];
-            this.completed = true;
-        };
-        /**
-         * Adds animation callbacks to be called upon completion
-         * @param callback
-         * @returns {Animation}
-         */
-        Animation.prototype.onComplete = function (callback) {
-            if (this.completed) {
-                callback();
-            }
-            else {
-                this.callbacks.push(callback);
-            }
-            return this;
-        };
-        /**
-         * Converts the duration string to the number of milliseconds
-         * @param duration
-         * @returns {number}
-         */
-        Animation.prototype.parseDurationString = function (duration) {
-            var maxValue = 0;
-            // duration must have at least 2 characters to be valid. (number + type)
-            if (duration == null || duration.length < 2) {
-                return maxValue;
-            }
-            else if (duration.substring(duration.length - 2) == 'ms') {
-                var value = NumberWrapper.parseInt(this.stripLetters(duration), 10);
-                if (value > maxValue)
-                    maxValue = value;
-            }
-            else if (duration.substring(duration.length - 1) == 's') {
-                var ms = NumberWrapper.parseFloat(this.stripLetters(duration)) * 1000;
-                var value = Math$1.floor(ms);
-                if (value > maxValue)
-                    maxValue = value;
-            }
-            return maxValue;
-        };
-        /**
-         * Strips the letters from the duration string
-         * @param str
-         * @returns {string}
-         */
-        Animation.prototype.stripLetters = function (str) {
-            return StringWrapper.replaceAll(str, RegExpWrapper.create('[^0-9]+$', ''), '');
-        };
-        return Animation;
-    }());
-    var CssAnimationBuilder = (function () {
-        /**
-         * Accepts public properties for CssAnimationBuilder
-         */
-        function CssAnimationBuilder(browserDetails) {
-            this.browserDetails = browserDetails;
-            /** @type {CssAnimationOptions} */
-            this.data = new CssAnimationOptions();
-        }
-        /**
-         * Adds a temporary class that will be removed at the end of the animation
-         * @param className
-         */
-        CssAnimationBuilder.prototype.addAnimationClass = function (className) {
-            this.data.animationClasses.push(className);
-            return this;
-        };
-        /**
-         * Adds a class that will remain on the element after the animation has finished
-         * @param className
-         */
-        CssAnimationBuilder.prototype.addClass = function (className) {
-            this.data.classesToAdd.push(className);
-            return this;
-        };
-        /**
-         * Removes a class from the element
-         * @param className
-         */
-        CssAnimationBuilder.prototype.removeClass = function (className) {
-            this.data.classesToRemove.push(className);
-            return this;
-        };
-        /**
-         * Sets the animation duration (and overrides any defined through CSS)
-         * @param duration
-         */
-        CssAnimationBuilder.prototype.setDuration = function (duration) {
-            this.data.duration = duration;
-            return this;
-        };
-        /**
-         * Sets the animation delay (and overrides any defined through CSS)
-         * @param delay
-         */
-        CssAnimationBuilder.prototype.setDelay = function (delay) {
-            this.data.delay = delay;
-            return this;
-        };
-        /**
-         * Sets styles for both the initial state and the destination state
-         * @param from
-         * @param to
-         */
-        CssAnimationBuilder.prototype.setStyles = function (from, to) {
-            return this.setFromStyles(from).setToStyles(to);
-        };
-        /**
-         * Sets the initial styles for the animation
-         * @param from
-         */
-        CssAnimationBuilder.prototype.setFromStyles = function (from) {
-            this.data.fromStyles = from;
-            return this;
-        };
-        /**
-         * Sets the destination styles for the animation
-         * @param to
-         */
-        CssAnimationBuilder.prototype.setToStyles = function (to) {
-            this.data.toStyles = to;
-            return this;
-        };
-        /**
-         * Starts the animation and returns a promise
-         * @param element
-         */
-        CssAnimationBuilder.prototype.start = function (element) {
-            return new Animation(element, this.data, this.browserDetails);
-        };
-        return CssAnimationBuilder;
-    }());
-    var BrowserDetails = (function () {
-        function BrowserDetails() {
-            this.elapsedTimeIncludesDelay = false;
-            this.doesElapsedTimeIncludesDelay();
-        }
-        /**
-         * Determines if `event.elapsedTime` includes transition delay in the current browser.  At this
-         * time, Chrome and Opera seem to be the only browsers that include this.
-         */
-        BrowserDetails.prototype.doesElapsedTimeIncludesDelay = function () {
-            var _this = this;
-            var div = getDOM().createElement('div');
-            getDOM().setAttribute(div, 'style', "position: absolute; top: -9999px; left: -9999px; width: 1px;\n      height: 1px; transition: all 1ms linear 1ms;");
-            // Firefox requires that we wait for 2 frames for some reason
-            this.raf(function (timestamp) {
-                getDOM().on(div, 'transitionend', function (event) {
-                    var elapsed = Math$1.round(event.elapsedTime * 1000);
-                    _this.elapsedTimeIncludesDelay = elapsed == 2;
-                    getDOM().remove(div);
-                });
-                getDOM().setStyle(div, 'width', '2px');
-            }, 2);
-        };
-        BrowserDetails.prototype.raf = function (callback, frames) {
-            if (frames === void 0) { frames = 1; }
-            var queue = new RafQueue(callback, frames);
-            return function () { return queue.cancel(); };
-        };
-        return BrowserDetails;
-    }());
-    BrowserDetails.decorators = [
-        { type: _angular_core.Injectable },
-    ];
-    BrowserDetails.ctorParameters = [];
-    var RafQueue = (function () {
-        function RafQueue(callback, frames) {
-            this.callback = callback;
-            this.frames = frames;
-            this._raf();
-        }
-        RafQueue.prototype._raf = function () {
-            var _this = this;
-            this.currentFrameId =
-                getDOM().requestAnimationFrame(function (timestamp) { return _this._nextFrame(timestamp); });
-        };
-        RafQueue.prototype._nextFrame = function (timestamp) {
-            this.frames--;
-            if (this.frames > 0) {
-                this._raf();
-            }
-            else {
-                this.callback(timestamp);
-            }
-        };
-        RafQueue.prototype.cancel = function () {
-            getDOM().cancelAnimationFrame(this.currentFrameId);
-            this.currentFrameId = null;
-        };
-        return RafQueue;
-    }());
-    var AnimationBuilder = (function () {
-        /**
-         * Used for DI
-         * @param browserDetails
-         */
-        function AnimationBuilder(browserDetails) {
-            this.browserDetails = browserDetails;
-        }
-        /**
-         * Creates a new CSS Animation
-         * @returns {CssAnimationBuilder}
-         */
-        AnimationBuilder.prototype.css = function () { return new CssAnimationBuilder(this.browserDetails); };
-        return AnimationBuilder;
-    }());
-    AnimationBuilder.decorators = [
-        { type: _angular_core.Injectable },
-    ];
-    AnimationBuilder.ctorParameters = [
-        { type: BrowserDetails, },
-    ];
+    var reflector = _angular_core.__core_private__.reflector;
+    var NoOpAnimationDriver = _angular_core.__core_private__.NoOpAnimationDriver;
+    var AnimationDriver = _angular_core.__core_private__.AnimationDriver;
     /**
      * A DI Token representing the main rendering context. In a browser this is the DOM Document.
      *
@@ -1360,24 +990,26 @@ var __extends = (this && this.__extends) || function (d, b) {
     DomSharedStylesHost.ctorParameters = [
         { type: undefined, decorators: [{ type: _angular_core.Inject, args: [DOCUMENT,] },] },
     ];
-    var NAMESPACE_URIS = 
-    /*@ts2dart_const*/
-    { 'xlink': 'http://www.w3.org/1999/xlink', 'svg': 'http://www.w3.org/2000/svg' };
+    var CAMEL_CASE_REGEXP = /([A-Z])/g;
+    function camelCaseToDashCase(input) {
+        return StringWrapper.replaceAllMapped(input, CAMEL_CASE_REGEXP, function (m) { return '-' + m[1].toLowerCase(); });
+    }
+    var NAMESPACE_URIS = { 'xlink': 'http://www.w3.org/1999/xlink', 'svg': 'http://www.w3.org/2000/svg' };
     var TEMPLATE_COMMENT_TEXT = 'template bindings={}';
     var TEMPLATE_BINDINGS_EXP = /^template bindings=(.*)$/g;
     var DomRootRenderer = (function () {
-        function DomRootRenderer(document, eventManager, sharedStylesHost, animate) {
+        function DomRootRenderer(document, eventManager, sharedStylesHost, animationDriver) {
             this.document = document;
             this.eventManager = eventManager;
             this.sharedStylesHost = sharedStylesHost;
-            this.animate = animate;
-            this._registeredComponents = new Map();
+            this.animationDriver = animationDriver;
+            this.registeredComponents = new Map();
         }
         DomRootRenderer.prototype.renderComponent = function (componentProto) {
-            var renderer = this._registeredComponents.get(componentProto.id);
+            var renderer = this.registeredComponents.get(componentProto.id);
             if (isBlank(renderer)) {
-                renderer = new DomRenderer(this, componentProto);
-                this._registeredComponents.set(componentProto.id, renderer);
+                renderer = new DomRenderer(this, componentProto, this.animationDriver);
+                this.registeredComponents.set(componentProto.id, renderer);
             }
             return renderer;
         };
@@ -1385,8 +1017,8 @@ var __extends = (this && this.__extends) || function (d, b) {
     }());
     var DomRootRenderer_ = (function (_super) {
         __extends(DomRootRenderer_, _super);
-        function DomRootRenderer_(_document, _eventManager, sharedStylesHost, animate) {
-            _super.call(this, _document, _eventManager, sharedStylesHost, animate);
+        function DomRootRenderer_(_document, _eventManager, sharedStylesHost, animationDriver) {
+            _super.call(this, _document, _eventManager, sharedStylesHost, animationDriver);
         }
         return DomRootRenderer_;
     }(DomRootRenderer));
@@ -1397,12 +1029,13 @@ var __extends = (this && this.__extends) || function (d, b) {
         { type: undefined, decorators: [{ type: _angular_core.Inject, args: [DOCUMENT,] },] },
         { type: EventManager, },
         { type: DomSharedStylesHost, },
-        { type: AnimationBuilder, },
+        { type: AnimationDriver, },
     ];
     var DomRenderer = (function () {
-        function DomRenderer(_rootRenderer, componentProto) {
+        function DomRenderer(_rootRenderer, componentProto, _animationDriver) {
             this._rootRenderer = _rootRenderer;
             this.componentProto = componentProto;
+            this._animationDriver = _animationDriver;
             this._styles = _flattenStyles(componentProto.id, componentProto.styles, []);
             if (componentProto.encapsulation !== _angular_core.ViewEncapsulation.Native) {
                 this._rootRenderer.sharedStylesHost.addStyles(this._styles);
@@ -1421,7 +1054,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             if (isString(selectorOrNode)) {
                 el = getDOM().querySelector(this._rootRenderer.document, selectorOrNode);
                 if (isBlank(el)) {
-                    throw new BaseException("The selector \"" + selectorOrNode + "\" did not match any elements");
+                    throw new BaseException$1("The selector \"" + selectorOrNode + "\" did not match any elements");
                 }
             }
             else {
@@ -1481,14 +1114,10 @@ var __extends = (this && this.__extends) || function (d, b) {
         };
         DomRenderer.prototype.attachViewAfter = function (node, viewRootNodes) {
             moveNodesAfterSibling(node, viewRootNodes);
-            for (var i = 0; i < viewRootNodes.length; i++)
-                this.animateNodeEnter(viewRootNodes[i]);
         };
         DomRenderer.prototype.detachView = function (viewRootNodes) {
             for (var i = 0; i < viewRootNodes.length; i++) {
-                var node = viewRootNodes[i];
-                getDOM().remove(node);
-                this.animateNodeLeave(node);
+                getDOM().remove(viewRootNodes[i]);
             }
         };
         DomRenderer.prototype.destroyView = function (hostElement, viewAllNodes) {
@@ -1549,6 +1178,10 @@ var __extends = (this && this.__extends) || function (d, b) {
                 getDOM().removeClass(renderElement, className);
             }
         };
+        DomRenderer.prototype.setElementStyles = function (renderElement, styles) {
+            var _this = this;
+            StringMapWrapper.forEach(styles, function (value, prop) { return _this.setElementStyle(renderElement, prop, value); });
+        };
         DomRenderer.prototype.setElementStyle = function (renderElement, styleName, styleValue) {
             if (isPresent(styleValue)) {
                 getDOM().setStyle(renderElement, styleName, stringify(styleValue));
@@ -1561,38 +1194,8 @@ var __extends = (this && this.__extends) || function (d, b) {
             getDOM().invoke(renderElement, methodName, args);
         };
         DomRenderer.prototype.setText = function (renderNode, text) { getDOM().setText(renderNode, text); };
-        /**
-         * Performs animations if necessary
-         * @param node
-         */
-        DomRenderer.prototype.animateNodeEnter = function (node) {
-            if (getDOM().isElementNode(node) && getDOM().hasClass(node, 'ng-animate')) {
-                getDOM().addClass(node, 'ng-enter');
-                this._rootRenderer.animate.css()
-                    .addAnimationClass('ng-enter-active')
-                    .start(node)
-                    .onComplete(function () { getDOM().removeClass(node, 'ng-enter'); });
-            }
-        };
-        /**
-         * If animations are necessary, performs animations then removes the element; otherwise, it just
-         * removes the element.
-         * @param node
-         */
-        DomRenderer.prototype.animateNodeLeave = function (node) {
-            if (getDOM().isElementNode(node) && getDOM().hasClass(node, 'ng-animate')) {
-                getDOM().addClass(node, 'ng-leave');
-                this._rootRenderer.animate.css()
-                    .addAnimationClass('ng-leave-active')
-                    .start(node)
-                    .onComplete(function () {
-                    getDOM().removeClass(node, 'ng-leave');
-                    getDOM().remove(node);
-                });
-            }
-            else {
-                getDOM().remove(node);
-            }
+        DomRenderer.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing) {
+            return this._animationDriver.animate(element, startingStyles, keyframes, duration, delay, easing);
         };
         return DomRenderer;
     }());
@@ -1683,7 +1286,7 @@ var __extends = (this && this.__extends) || function (d, b) {
      * Providers which support debugging Angular applications (e.g. via `ng.probe`).
      */
     var ELEMENT_PROBE_PROVIDERS = [
-        /*@ts2dart_Provider*/ {
+        {
             provide: _angular_core.RootRenderer,
             useFactory: _createConditionalRootRenderer,
             deps: [DomRootRenderer]
@@ -2391,6 +1994,161 @@ var __extends = (this && this.__extends) || function (d, b) {
         SafeResourceUrlImpl.prototype.getTypeName = function () { return 'ResourceURL'; };
         return SafeResourceUrlImpl;
     }(SafeValueImpl));
+    var WebAnimationsPlayer = (function () {
+        function WebAnimationsPlayer(_player, totalTime) {
+            var _this = this;
+            this._player = _player;
+            this.totalTime = totalTime;
+            this._subscriptions = [];
+            this._finished = false;
+            this.parentPlayer = null;
+            // this is required to make the player startable at a later time
+            this.reset();
+            this._player.onfinish = function () { return _this._onFinish(); };
+        }
+        WebAnimationsPlayer.prototype._onFinish = function () {
+            if (!this._finished) {
+                this._finished = true;
+                if (!isPresent(this.parentPlayer)) {
+                    this.destroy();
+                }
+                this._subscriptions.forEach(function (fn) { return fn(); });
+                this._subscriptions = [];
+            }
+        };
+        WebAnimationsPlayer.prototype.onDone = function (fn) { this._subscriptions.push(fn); };
+        WebAnimationsPlayer.prototype.play = function () { this._player.play(); };
+        WebAnimationsPlayer.prototype.pause = function () { this._player.pause(); };
+        WebAnimationsPlayer.prototype.finish = function () {
+            this._onFinish();
+            this._player.finish();
+        };
+        WebAnimationsPlayer.prototype.reset = function () { this._player.cancel(); };
+        WebAnimationsPlayer.prototype.restart = function () {
+            this.reset();
+            this.play();
+        };
+        WebAnimationsPlayer.prototype.destroy = function () {
+            this.reset();
+            this._onFinish();
+        };
+        WebAnimationsPlayer.prototype.setPosition = function (p) {
+            this._player.currentTime = p * this.totalTime;
+        };
+        WebAnimationsPlayer.prototype.getPosition = function () {
+            return this._player.currentTime / this.totalTime;
+        };
+        return WebAnimationsPlayer;
+    }());
+    var WebAnimationsDriver = (function () {
+        function WebAnimationsDriver() {
+        }
+        WebAnimationsDriver.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing) {
+            var anyElm = element;
+            var formattedSteps = [];
+            var startingStyleLookup = {};
+            if (isPresent(startingStyles) && startingStyles.styles.length > 0) {
+                startingStyleLookup = _populateStyles(anyElm, startingStyles, {});
+                startingStyleLookup['offset'] = 0;
+                formattedSteps.push(startingStyleLookup);
+            }
+            keyframes.forEach(function (keyframe) {
+                var data = _populateStyles(anyElm, keyframe.styles, startingStyleLookup);
+                data['offset'] = keyframe.offset;
+                formattedSteps.push(data);
+            });
+            // this is a special case when only styles are applied as an
+            // animation. When this occurs we want to animate from start to
+            // end with the same values. Removing the offset and having only
+            // start/end values is suitable enough for the web-animations API
+            if (formattedSteps.length == 1) {
+                var start = formattedSteps[0];
+                start.offset = null;
+                formattedSteps = [start, start];
+            }
+            var player = anyElm.animate(formattedSteps, { 'duration': duration, 'delay': delay, 'easing': easing, 'fill': 'forwards' });
+            return new WebAnimationsPlayer(player, duration);
+        };
+        return WebAnimationsDriver;
+    }());
+    function _populateStyles(element, styles, defaultStyles) {
+        var data = {};
+        styles.styles.forEach(function (entry) {
+            StringMapWrapper.forEach(entry, function (val, prop) {
+                data[prop] = val == _angular_core.AUTO_STYLE
+                    ? _computeStyle(element, prop)
+                    : val.toString() + _resolveStyleUnit(val, prop);
+            });
+        });
+        StringMapWrapper.forEach(defaultStyles, function (value, prop) {
+            if (!isPresent(data[prop])) {
+                data[prop] = value;
+            }
+        });
+        return data;
+    }
+    function _resolveStyleUnit(val, prop) {
+        var unit = '';
+        if (_isPixelDimensionStyle(prop) && val != 0 && val != '0') {
+            if (isNumber(val)) {
+                unit = 'px';
+            }
+            else if (_findDimensionalSuffix(val.toString()).length == 0) {
+                throw new _angular_core.BaseException('Please provide a CSS unit value for ' + prop + ':' + val);
+            }
+        }
+        return unit;
+    }
+    var _$0 = 48;
+    var _$9 = 57;
+    var _$PERIOD = 46;
+    function _findDimensionalSuffix(value) {
+        for (var i = 0; i < value.length; i++) {
+            var c = StringWrapper.charCodeAt(value, i);
+            if ((c >= _$0 && c <= _$9) || c == _$PERIOD)
+                continue;
+            return value.substring(i, value.length);
+        }
+        return '';
+    }
+    function _isPixelDimensionStyle(prop) {
+        switch (prop) {
+            case 'width':
+            case 'height':
+            case 'min-width':
+            case 'min-height':
+            case 'max-width':
+            case 'max-height':
+            case 'left':
+            case 'top':
+            case 'bottom':
+            case 'right':
+            case 'font-size':
+            case 'outline-width':
+            case 'outline-offset':
+            case 'padding-top':
+            case 'padding-left':
+            case 'padding-bottom':
+            case 'padding-right':
+            case 'margin-top':
+            case 'margin-left':
+            case 'margin-bottom':
+            case 'margin-right':
+            case 'border-radius':
+            case 'border-width':
+            case 'border-top-width':
+            case 'border-left-width':
+            case 'border-right-width':
+            case 'border-bottom-width':
+            case 'text-indent':
+                return true;
+            default:
+                return false;
+        }
+    }
+    function _computeStyle(element, prop) {
+        return getDOM().getComputedStyle(element)[prop];
+    }
     /**
      * Provides DOM operations in any browser environment.
      */
@@ -2804,6 +2562,7 @@ var __extends = (this && this.__extends) || function (d, b) {
         BrowserDomAdapter.prototype.setGlobalVar = function (path, value) { setValueOnPath(global$1, path, value); };
         BrowserDomAdapter.prototype.requestAnimationFrame = function (callback) { return window.requestAnimationFrame(callback); };
         BrowserDomAdapter.prototype.cancelAnimationFrame = function (id) { window.cancelAnimationFrame(id); };
+        BrowserDomAdapter.prototype.supportsWebAnimation = function () { return isFunction(document.body['animate']); };
         BrowserDomAdapter.prototype.performanceNow = function () {
             // performance.now() is not available in all browsers, see
             // http://caniuse.com/#search=performance.now
@@ -2904,86 +2663,6 @@ var __extends = (this && this.__extends) || function (d, b) {
         };
         return BrowserGetTestability;
     }());
-    var BROWSER_PLATFORM_MARKER = 
-    /*@ts2dart_const*/ new _angular_core.OpaqueToken('BrowserPlatformMarker');
-    /**
-     * A set of providers to initialize the Angular platform in a web browser.
-     *
-     * Used automatically by `bootstrap`, or can be passed to {@link platform}.
-     */
-    var BROWSER_PLATFORM_PROVIDERS = [
-        /*@ts2dart_Provider*/ { provide: BROWSER_PLATFORM_MARKER, useValue: true },
-        _angular_core.PLATFORM_COMMON_PROVIDERS,
-        /*@ts2dart_Provider*/ { provide: _angular_core.PLATFORM_INITIALIZER, useValue: initDomAdapter, multi: true },
-        /*@ts2dart_Provider*/ { provide: _angular_common.PlatformLocation, useClass: BrowserPlatformLocation }
-    ];
-    var BROWSER_SANITIZATION_PROVIDERS = [
-        /* @ts2dart_Provider */ { provide: SanitizationService, useExisting: DomSanitizationService },
-        /* @ts2dart_Provider */ { provide: DomSanitizationService, useClass: DomSanitizationServiceImpl },
-    ];
-    /**
-     * A set of providers to initialize an Angular application in a web browser.
-     *
-     * Used automatically by `bootstrap`, or can be passed to {@link PlatformRef.application}.
-     */
-    var BROWSER_APP_COMMON_PROVIDERS = 
-    /*@ts2dart_const*/ [
-        _angular_core.APPLICATION_COMMON_PROVIDERS,
-        _angular_common.FORM_PROVIDERS,
-        BROWSER_SANITIZATION_PROVIDERS,
-        /* @ts2dart_Provider */ { provide: _angular_core.PLATFORM_PIPES, useValue: _angular_common.COMMON_PIPES, multi: true },
-        /* @ts2dart_Provider */ { provide: _angular_core.PLATFORM_DIRECTIVES, useValue: _angular_common.COMMON_DIRECTIVES, multi: true },
-        /* @ts2dart_Provider */ { provide: _angular_core.ExceptionHandler, useFactory: _exceptionHandler, deps: [] },
-        /* @ts2dart_Provider */ { provide: DOCUMENT, useFactory: _document, deps: [] },
-        /* @ts2dart_Provider */ { provide: EVENT_MANAGER_PLUGINS, useClass: DomEventsPlugin, multi: true },
-        /* @ts2dart_Provider */ { provide: EVENT_MANAGER_PLUGINS, useClass: KeyEventsPlugin, multi: true },
-        /* @ts2dart_Provider */ { provide: EVENT_MANAGER_PLUGINS, useClass: HammerGesturesPlugin, multi: true },
-        /* @ts2dart_Provider */ { provide: HAMMER_GESTURE_CONFIG, useClass: HammerGestureConfig },
-        /* @ts2dart_Provider */ { provide: DomRootRenderer, useClass: DomRootRenderer_ },
-        /* @ts2dart_Provider */ { provide: _angular_core.RootRenderer, useExisting: DomRootRenderer },
-        /* @ts2dart_Provider */ { provide: SharedStylesHost, useExisting: DomSharedStylesHost },
-        DomSharedStylesHost,
-        _angular_core.Testability,
-        BrowserDetails,
-        AnimationBuilder,
-        EventManager,
-        ELEMENT_PROBE_PROVIDERS
-    ];
-    function browserPlatform() {
-        if (isBlank(_angular_core.getPlatform())) {
-            _angular_core.createPlatform(_angular_core.ReflectiveInjector.resolveAndCreate(BROWSER_PLATFORM_PROVIDERS));
-        }
-        return _angular_core.assertPlatform(BROWSER_PLATFORM_MARKER);
-    }
-    function initDomAdapter() {
-        BrowserDomAdapter.makeCurrent();
-        wtfInit();
-        BrowserGetTestability.init();
-    }
-    function _exceptionHandler() {
-        return new _angular_core.ExceptionHandler(getDOM());
-    }
-    function _document() {
-        return getDOM().defaultDoc();
-    }
-    /**
-     * An array of providers that should be passed into `application()` when bootstrapping a component
-     * when all templates have been pre-compiled.
-     */
-    var BROWSER_APP_STATIC_PROVIDERS = 
-    /*@ts2dart_const*/ BROWSER_APP_COMMON_PROVIDERS;
-    /**
-     * See {@link bootstrap} for more information.
-     */
-    function bootstrapStatic(appComponentType, customProviders, initReflector) {
-        if (isPresent(initReflector)) {
-            initReflector();
-        }
-        var appProviders = isPresent(customProviders) ? [BROWSER_APP_STATIC_PROVIDERS, customProviders] :
-            BROWSER_APP_STATIC_PROVIDERS;
-        var appInjector = _angular_core.ReflectiveInjector.resolveAndCreate(appProviders, browserPlatform().injector);
-        return _angular_core.coreLoadAndBootstrap(appInjector, appComponentType);
-    }
     var PromiseCompleter = (function () {
         function PromiseCompleter() {
             var _this = this;
@@ -3042,7 +2721,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             _super.call(this);
             this._cache = global$1.$templateCache;
             if (this._cache == null) {
-                throw new BaseException('CachedXHR: Template cache was not found in $templateCache.');
+                throw new BaseException$1('CachedXHR: Template cache was not found in $templateCache.');
             }
         }
         CachedXHR.prototype.get = function (url) {
@@ -3090,17 +2769,59 @@ var __extends = (this && this.__extends) || function (d, b) {
         };
         return XHRImpl;
     }(_angular_compiler.XHR));
-    var CACHED_TEMPLATE_PROVIDER = 
-    /*@ts2dart_const*/ [{ provide: _angular_compiler.XHR, useClass: CachedXHR }];
+    var CACHED_TEMPLATE_PROVIDER = [{ provide: _angular_compiler.XHR, useClass: CachedXHR }];
+    var BROWSER_PLATFORM_MARKER = new _angular_core.OpaqueToken('BrowserPlatformMarker');
     /**
-     * An array of providers that should be passed into `application()` when bootstrapping a component.
+     * A set of providers to initialize the Angular platform in a web browser.
+     *
+     * Used automatically by `bootstrap`, or can be passed to {@link platform}.
      */
-    var BROWSER_APP_PROVIDERS = 
-    /*@ts2dart_const*/ [
-        BROWSER_APP_COMMON_PROVIDERS,
+    var BROWSER_PLATFORM_PROVIDERS = [
+        { provide: BROWSER_PLATFORM_MARKER, useValue: true },
+        _angular_core.PLATFORM_COMMON_PROVIDERS,
+        { provide: _angular_core.PLATFORM_INITIALIZER, useValue: initDomAdapter, multi: true },
+        { provide: _angular_common.PlatformLocation, useClass: BrowserPlatformLocation }
+    ];
+    var BROWSER_SANITIZATION_PROVIDERS = [
+        { provide: SanitizationService, useExisting: DomSanitizationService },
+        { provide: DomSanitizationService, useClass: DomSanitizationServiceImpl },
+    ];
+    /**
+     * A set of providers to initialize an Angular application in a web browser.
+     *
+     * Used automatically by `bootstrap`, or can be passed to {@link PlatformRef.application}.
+     */
+    var BROWSER_APP_PROVIDERS = [
+        _angular_core.APPLICATION_COMMON_PROVIDERS,
+        _angular_common.FORM_PROVIDERS,
+        BROWSER_SANITIZATION_PROVIDERS,
+        { provide: _angular_core.PLATFORM_PIPES, useValue: _angular_common.COMMON_PIPES, multi: true },
+        { provide: _angular_core.PLATFORM_DIRECTIVES, useValue: _angular_common.COMMON_DIRECTIVES, multi: true },
+        { provide: _angular_core.ExceptionHandler, useFactory: _exceptionHandler, deps: [] },
+        { provide: DOCUMENT, useFactory: _document, deps: [] },
+        { provide: EVENT_MANAGER_PLUGINS, useClass: DomEventsPlugin, multi: true },
+        { provide: EVENT_MANAGER_PLUGINS, useClass: KeyEventsPlugin, multi: true },
+        { provide: EVENT_MANAGER_PLUGINS, useClass: HammerGesturesPlugin, multi: true },
+        { provide: HAMMER_GESTURE_CONFIG, useClass: HammerGestureConfig },
+        { provide: DomRootRenderer, useClass: DomRootRenderer_ },
+        { provide: _angular_core.RootRenderer, useExisting: DomRootRenderer },
+        { provide: SharedStylesHost, useExisting: DomSharedStylesHost },
+        { provide: AnimationDriver, useFactory: _resolveDefaultAnimationDriver },
+        DomSharedStylesHost,
+        _angular_core.Testability,
+        EventManager,
+        ELEMENT_PROBE_PROVIDERS
+    ];
+    var BROWSER_APP_COMPILER_PROVIDERS = [
         _angular_compiler.COMPILER_PROVIDERS,
         { provide: _angular_compiler.XHR, useClass: XHRImpl },
     ];
+    function browserPlatform() {
+        if (isBlank(_angular_core.getPlatform())) {
+            _angular_core.createPlatform(_angular_core.ReflectiveInjector.resolveAndCreate(BROWSER_PLATFORM_PROVIDERS));
+        }
+        return _angular_core.assertPlatform(BROWSER_PLATFORM_MARKER);
+    }
     /**
      * Bootstrapping for Angular applications.
      *
@@ -3170,9 +2891,31 @@ var __extends = (this && this.__extends) || function (d, b) {
      * Returns a `Promise` of {@link ComponentRef}.
      */
     function bootstrap(appComponentType, customProviders) {
-        _angular_core.reflector.reflectionCapabilities = new ReflectionCapabilities();
-        var appInjector = _angular_core.ReflectiveInjector.resolveAndCreate([BROWSER_APP_PROVIDERS, isPresent(customProviders) ? customProviders : []], browserPlatform().injector);
-        return _angular_core.coreLoadAndBootstrap(appInjector, appComponentType);
+        reflector.reflectionCapabilities = new ReflectionCapabilities();
+        var providers = [
+            BROWSER_APP_PROVIDERS,
+            BROWSER_APP_COMPILER_PROVIDERS,
+            isPresent(customProviders) ? customProviders : []
+        ];
+        var appInjector = _angular_core.ReflectiveInjector.resolveAndCreate(providers, browserPlatform().injector);
+        return _angular_core.coreLoadAndBootstrap(appComponentType, appInjector);
+    }
+    function initDomAdapter() {
+        BrowserDomAdapter.makeCurrent();
+        wtfInit();
+        BrowserGetTestability.init();
+    }
+    function _exceptionHandler() {
+        return new _angular_core.ExceptionHandler(getDOM());
+    }
+    function _document() {
+        return getDOM().defaultDoc();
+    }
+    function _resolveDefaultAnimationDriver() {
+        if (getDOM().supportsWebAnimation()) {
+            return new WebAnimationsDriver();
+        }
+        return new NoOpAnimationDriver();
     }
     /**
      * Message Bus is a low level API used to communicate between the UI and the background.
@@ -3248,10 +2991,17 @@ var __extends = (this && this.__extends) || function (d, b) {
      * }
      * ```
      *
-     * Use Rx.Observable but provides an adapter to make it work as specified here:
+     * The events payload can be accessed by the parameter `$event` on the components output event handler:
+     *
+     * ```
+     * <zippy (open)="onOpen($event)" (close)="onClose($event)"></zippy>
+     * ```
+     *
+     * Uses Rx.Observable but provides an adapter to make it work as specified here:
      * https://github.com/jhusain/observable-spec
      *
      * Once a reference implementation of the spec is available, switch to it.
+     * @stable
      */
     var EventEmitter = (function (_super) {
         __extends(EventEmitter, _super);
@@ -3385,7 +3135,7 @@ var __extends = (this && this.__extends) || function (d, b) {
                 return this._serializeLocation(obj);
             }
             else {
-                throw new BaseException("No serializer for " + type.toString());
+                throw new BaseException$1("No serializer for " + type.toString());
             }
         };
         Serializer.prototype.deserialize = function (map, type, data) {
@@ -3414,37 +3164,7 @@ var __extends = (this && this.__extends) || function (d, b) {
                 return this._deserializeLocation(map);
             }
             else {
-                throw new BaseException("No deserializer for " + type.toString());
-            }
-        };
-        Serializer.prototype.mapToObject = function (map, type) {
-            var _this = this;
-            var object = {};
-            var serialize = isPresent(type);
-            map.forEach(function (value, key) {
-                if (serialize) {
-                    object[key] = _this.serialize(value, type);
-                }
-                else {
-                    object[key] = value;
-                }
-            });
-            return object;
-        };
-        /*
-         * Transforms a Javascript object (StringMap) into a Map<string, V>
-         * If the values need to be deserialized pass in their type
-         * and they will be deserialized before being placed in the map
-         */
-        Serializer.prototype.objectToMap = function (obj, type, data) {
-            var _this = this;
-            if (isPresent(type)) {
-                var map = new Map$1();
-                StringMapWrapper.forEach(obj, function (val, key) { map.set(key, _this.deserialize(val, type, data)); });
-                return map;
-            }
-            else {
-                return MapWrapper.createFromStringMap(obj);
+                throw new BaseException$1("No deserializer for " + type.toString());
             }
         };
         Serializer.prototype._serializeLocation = function (loc) {
@@ -3777,10 +3497,10 @@ var __extends = (this && this.__extends) || function (d, b) {
             return PromiseWrapper.then(locationPromise, function (val) {
                 _this._location = val;
                 return true;
-            }, function (err) { throw new BaseException(err); });
+            }, function (err) { throw new BaseException$1(err); });
         };
         WebWorkerPlatformLocation.prototype.getBaseHrefFromDOM = function () {
-            throw new BaseException("Attempt to get base href from DOM from WebWorker. You must either provide a value for the APP_BASE_HREF token through DI or use the hash location strategy.");
+            throw new BaseException$1("Attempt to get base href from DOM from WebWorker. You must either provide a value for the APP_BASE_HREF token through DI or use the hash location strategy.");
         };
         WebWorkerPlatformLocation.prototype.onPopState = function (fn) { this._popStateListeners.push(fn); };
         WebWorkerPlatformLocation.prototype.onHashChange = function (fn) { this._hashChangeListeners.push(fn); };
@@ -3793,7 +3513,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             },
             set: function (newPath) {
                 if (this._location === null) {
-                    throw new BaseException("Attempt to set pathname before value is obtained from UI");
+                    throw new BaseException$1("Attempt to set pathname before value is obtained from UI");
                 }
                 this._location.pathname = newPath;
                 var fnArgs = [new FnArg(newPath, PRIMITIVE)];
@@ -3856,7 +3576,7 @@ var __extends = (this && this.__extends) || function (d, b) {
      * {@link ROUTER_PROVIDERS} and after them.
      */
     var WORKER_APP_LOCATION_PROVIDERS = [
-        /* @ts2dart_Provider */ { provide: _angular_common.PlatformLocation, useClass: WebWorkerPlatformLocation },
+        { provide: _angular_common.PlatformLocation, useClass: WebWorkerPlatformLocation },
         {
             provide: _angular_core.APP_INITIALIZER,
             useFactory: function (platformLocation, zone) { return function () { return initWorkerLocation(platformLocation, zone); }; },
@@ -3912,7 +3632,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     var WORKER_RENDER_LOCATION_PROVIDERS = [
         MessageBasedPlatformLocation,
         BrowserPlatformLocation,
-        /* @ts2dart_Provider */ { provide: _angular_core.APP_INITIALIZER, useFactory: initUiLocation, multi: true, deps: [_angular_core.Injector] }
+        { provide: _angular_core.APP_INITIALIZER, useFactory: initUiLocation, multi: true, deps: [_angular_core.Injector] }
     ];
     function initUiLocation(injector) {
         return function () {
@@ -4077,7 +3797,7 @@ var __extends = (this && this.__extends) || function (d, b) {
                     serializedEvent = serializeTransitionEvent(event);
                     break;
                 default:
-                    throw new BaseException(eventName + " not supported on WebWorkers");
+                    throw new BaseException$1(eventName + " not supported on WebWorkers");
             }
             ObservableWrapper.callEmit(this._sink, {
                 "element": this._serializer.serialize(element, RenderStoreObject),
@@ -4118,6 +3838,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             broker.registerMethod("setBindingDebugInfo", [RenderStoreObject, RenderStoreObject, PRIMITIVE, PRIMITIVE], FunctionWrapper.bind(this._setBindingDebugInfo, this));
             broker.registerMethod("setElementClass", [RenderStoreObject, RenderStoreObject, PRIMITIVE, PRIMITIVE], FunctionWrapper.bind(this._setElementClass, this));
             broker.registerMethod("setElementStyle", [RenderStoreObject, RenderStoreObject, PRIMITIVE, PRIMITIVE], FunctionWrapper.bind(this._setElementStyle, this));
+            broker.registerMethod("setElementStyles", [RenderStoreObject, RenderStoreObject, PRIMITIVE], FunctionWrapper.bind(this._setElementStyles, this));
             broker.registerMethod("invokeElementMethod", [RenderStoreObject, RenderStoreObject, PRIMITIVE, PRIMITIVE], FunctionWrapper.bind(this._invokeElementMethod, this));
             broker.registerMethod("setText", [RenderStoreObject, RenderStoreObject, PRIMITIVE], FunctionWrapper.bind(this._setText, this));
             broker.registerMethod("listen", [RenderStoreObject, RenderStoreObject, PRIMITIVE, PRIMITIVE], FunctionWrapper.bind(this._listen, this));
@@ -4176,6 +3897,9 @@ var __extends = (this && this.__extends) || function (d, b) {
         MessageBasedRenderer.prototype._setElementStyle = function (renderer, renderElement, styleName, styleValue) {
             renderer.setElementStyle(renderElement, styleName, styleValue);
         };
+        MessageBasedRenderer.prototype._setElementStyles = function (renderer, renderElement, styles) {
+            renderer.setElementStyles(renderElement, styles);
+        };
         MessageBasedRenderer.prototype._invokeElementMethod = function (renderer, renderElement, methodName, args) {
             renderer.invokeElementMethod(renderElement, methodName, args);
         };
@@ -4206,8 +3930,155 @@ var __extends = (this && this.__extends) || function (d, b) {
         { type: _angular_core.RootRenderer, },
     ];
     var ON_WEB_WORKER = new _angular_core.OpaqueToken('WebWorker.onWebWorker');
-    var WORKER_RENDER_PLATFORM_MARKER = 
-    /*@ts2dart_const*/ new _angular_core.OpaqueToken('WorkerRenderPlatformMarker');
+    var PostMessageBusSink = (function () {
+        function PostMessageBusSink(_postMessageTarget) {
+            this._postMessageTarget = _postMessageTarget;
+            this._channels = StringMapWrapper.create();
+            this._messageBuffer = [];
+        }
+        PostMessageBusSink.prototype.attachToZone = function (zone) {
+            var _this = this;
+            this._zone = zone;
+            this._zone.runOutsideAngular(function () {
+                ObservableWrapper.subscribe(_this._zone.onStable, function (_) { _this._handleOnEventDone(); });
+            });
+        };
+        PostMessageBusSink.prototype.initChannel = function (channel, runInZone) {
+            var _this = this;
+            if (runInZone === void 0) { runInZone = true; }
+            if (StringMapWrapper.contains(this._channels, channel)) {
+                throw new BaseException$1(channel + " has already been initialized");
+            }
+            var emitter = new EventEmitter(false);
+            var channelInfo = new _Channel(emitter, runInZone);
+            this._channels[channel] = channelInfo;
+            emitter.subscribe(function (data) {
+                var message = { channel: channel, message: data };
+                if (runInZone) {
+                    _this._messageBuffer.push(message);
+                }
+                else {
+                    _this._sendMessages([message]);
+                }
+            });
+        };
+        PostMessageBusSink.prototype.to = function (channel) {
+            if (StringMapWrapper.contains(this._channels, channel)) {
+                return this._channels[channel].emitter;
+            }
+            else {
+                throw new BaseException$1(channel + " is not set up. Did you forget to call initChannel?");
+            }
+        };
+        PostMessageBusSink.prototype._handleOnEventDone = function () {
+            if (this._messageBuffer.length > 0) {
+                this._sendMessages(this._messageBuffer);
+                this._messageBuffer = [];
+            }
+        };
+        PostMessageBusSink.prototype._sendMessages = function (messages) { this._postMessageTarget.postMessage(messages); };
+        return PostMessageBusSink;
+    }());
+    var PostMessageBusSource = (function () {
+        function PostMessageBusSource(eventTarget) {
+            var _this = this;
+            this._channels = StringMapWrapper.create();
+            if (eventTarget) {
+                eventTarget.addEventListener("message", function (ev) { return _this._handleMessages(ev); });
+            }
+            else {
+                // if no eventTarget is given we assume we're in a WebWorker and listen on the global scope
+                addEventListener("message", function (ev) { return _this._handleMessages(ev); });
+            }
+        }
+        PostMessageBusSource.prototype.attachToZone = function (zone) { this._zone = zone; };
+        PostMessageBusSource.prototype.initChannel = function (channel, runInZone) {
+            if (runInZone === void 0) { runInZone = true; }
+            if (StringMapWrapper.contains(this._channels, channel)) {
+                throw new BaseException$1(channel + " has already been initialized");
+            }
+            var emitter = new EventEmitter(false);
+            var channelInfo = new _Channel(emitter, runInZone);
+            this._channels[channel] = channelInfo;
+        };
+        PostMessageBusSource.prototype.from = function (channel) {
+            if (StringMapWrapper.contains(this._channels, channel)) {
+                return this._channels[channel].emitter;
+            }
+            else {
+                throw new BaseException$1(channel + " is not set up. Did you forget to call initChannel?");
+            }
+        };
+        PostMessageBusSource.prototype._handleMessages = function (ev) {
+            var messages = ev.data;
+            for (var i = 0; i < messages.length; i++) {
+                this._handleMessage(messages[i]);
+            }
+        };
+        PostMessageBusSource.prototype._handleMessage = function (data) {
+            var channel = data.channel;
+            if (StringMapWrapper.contains(this._channels, channel)) {
+                var channelInfo = this._channels[channel];
+                if (channelInfo.runInZone) {
+                    this._zone.run(function () { channelInfo.emitter.emit(data.message); });
+                }
+                else {
+                    channelInfo.emitter.emit(data.message);
+                }
+            }
+        };
+        return PostMessageBusSource;
+    }());
+    var PostMessageBus = (function () {
+        function PostMessageBus(sink, source) {
+            this.sink = sink;
+            this.source = source;
+        }
+        PostMessageBus.prototype.attachToZone = function (zone) {
+            this.source.attachToZone(zone);
+            this.sink.attachToZone(zone);
+        };
+        PostMessageBus.prototype.initChannel = function (channel, runInZone) {
+            if (runInZone === void 0) { runInZone = true; }
+            this.source.initChannel(channel, runInZone);
+            this.sink.initChannel(channel, runInZone);
+        };
+        PostMessageBus.prototype.from = function (channel) { return this.source.from(channel); };
+        PostMessageBus.prototype.to = function (channel) { return this.sink.to(channel); };
+        return PostMessageBus;
+    }());
+    PostMessageBus.decorators = [
+        { type: _angular_core.Injectable },
+    ];
+    PostMessageBus.ctorParameters = [
+        { type: PostMessageBusSink, },
+        { type: PostMessageBusSource, },
+    ];
+    /**
+     * Helper class that wraps a channel's {@link EventEmitter} and
+     * keeps track of if it should run in the zone.
+     */
+    var _Channel = (function () {
+        function _Channel(emitter, runInZone) {
+            this.emitter = emitter;
+            this.runInZone = runInZone;
+        }
+        return _Channel;
+    }());
+    var WORKER_RENDER_PLATFORM_MARKER = new _angular_core.OpaqueToken('WorkerRenderPlatformMarker');
+    var WebWorkerInstance = (function () {
+        function WebWorkerInstance() {
+        }
+        /** @internal */
+        WebWorkerInstance.prototype.init = function (worker, bus) {
+            this.worker = worker;
+            this.bus = bus;
+        };
+        return WebWorkerInstance;
+    }());
+    WebWorkerInstance.decorators = [
+        { type: _angular_core.Injectable },
+    ];
     var WORKER_SCRIPT = new _angular_core.OpaqueToken("WebWorkerScript");
     /**
      * A multiple providers used to automatically call the `start()` method after the service is
@@ -4215,40 +4086,49 @@ var __extends = (this && this.__extends) || function (d, b) {
      *
      * TODO(vicb): create an interface for startable services to implement
      */
-    var WORKER_RENDER_STARTABLE_MESSAGING_SERVICE = 
-    /*@ts2dart_const*/ new _angular_core.OpaqueToken('WorkerRenderStartableMsgService');
+    var WORKER_RENDER_STARTABLE_MESSAGING_SERVICE = new _angular_core.OpaqueToken('WorkerRenderStartableMsgService');
     var WORKER_RENDER_PLATFORM_PROVIDERS = [
         _angular_core.PLATFORM_COMMON_PROVIDERS,
-        /*@ts2dart_const*/ ({ provide: WORKER_RENDER_PLATFORM_MARKER, useValue: true }),
-        /* @ts2dart_Provider */ { provide: _angular_core.PLATFORM_INITIALIZER, useValue: initWebWorkerRenderPlatform, multi: true }
+        { provide: WORKER_RENDER_PLATFORM_MARKER, useValue: true },
+        { provide: _angular_core.PLATFORM_INITIALIZER, useValue: initWebWorkerRenderPlatform, multi: true }
     ];
-    var WORKER_RENDER_APPLICATION_COMMON_PROVIDERS = 
-    /*@ts2dart_const*/ [
+    var WORKER_RENDER_APPLICATION_PROVIDERS = [
         _angular_core.APPLICATION_COMMON_PROVIDERS,
         MessageBasedRenderer,
-        /* @ts2dart_Provider */ { provide: WORKER_RENDER_STARTABLE_MESSAGING_SERVICE, useExisting: MessageBasedRenderer, multi: true },
+        { provide: WORKER_RENDER_STARTABLE_MESSAGING_SERVICE, useExisting: MessageBasedRenderer, multi: true },
         BROWSER_SANITIZATION_PROVIDERS,
-        /* @ts2dart_Provider */ { provide: _angular_core.ExceptionHandler, useFactory: _exceptionHandler$1, deps: [] },
-        /* @ts2dart_Provider */ { provide: DOCUMENT, useFactory: _document$1, deps: [] },
+        { provide: _angular_core.ExceptionHandler, useFactory: _exceptionHandler$1, deps: [] },
+        { provide: DOCUMENT, useFactory: _document$1, deps: [] },
         // TODO(jteplitz602): Investigate if we definitely need EVENT_MANAGER on the render thread
         // #5298
-        /* @ts2dart_Provider */ { provide: EVENT_MANAGER_PLUGINS, useClass: DomEventsPlugin, multi: true },
-        /* @ts2dart_Provider */ { provide: EVENT_MANAGER_PLUGINS, useClass: KeyEventsPlugin, multi: true },
-        /* @ts2dart_Provider */ { provide: EVENT_MANAGER_PLUGINS, useClass: HammerGesturesPlugin, multi: true },
-        /* @ts2dart_Provider */ { provide: HAMMER_GESTURE_CONFIG, useClass: HammerGestureConfig },
-        /* @ts2dart_Provider */ { provide: DomRootRenderer, useClass: DomRootRenderer_ },
-        /* @ts2dart_Provider */ { provide: _angular_core.RootRenderer, useExisting: DomRootRenderer },
-        /* @ts2dart_Provider */ { provide: SharedStylesHost, useExisting: DomSharedStylesHost },
-        /* @ts2dart_Provider */ { provide: ServiceMessageBrokerFactory, useClass: ServiceMessageBrokerFactory_ },
-        /* @ts2dart_Provider */ { provide: ClientMessageBrokerFactory, useClass: ClientMessageBrokerFactory_ },
+        { provide: EVENT_MANAGER_PLUGINS, useClass: DomEventsPlugin, multi: true },
+        { provide: EVENT_MANAGER_PLUGINS, useClass: KeyEventsPlugin, multi: true },
+        { provide: EVENT_MANAGER_PLUGINS, useClass: HammerGesturesPlugin, multi: true },
+        { provide: HAMMER_GESTURE_CONFIG, useClass: HammerGestureConfig },
+        { provide: DomRootRenderer, useClass: DomRootRenderer_ },
+        { provide: _angular_core.RootRenderer, useExisting: DomRootRenderer },
+        { provide: SharedStylesHost, useExisting: DomSharedStylesHost },
+        { provide: ServiceMessageBrokerFactory, useClass: ServiceMessageBrokerFactory_ },
+        { provide: ClientMessageBrokerFactory, useClass: ClientMessageBrokerFactory_ },
+        { provide: AnimationDriver, useFactory: _resolveDefaultAnimationDriver$1 },
         Serializer,
-        /* @ts2dart_Provider */ { provide: ON_WEB_WORKER, useValue: false },
+        { provide: ON_WEB_WORKER, useValue: false },
         RenderStore,
         DomSharedStylesHost,
         _angular_core.Testability,
-        BrowserDetails,
-        AnimationBuilder,
-        EventManager
+        EventManager,
+        WebWorkerInstance,
+        {
+            provide: _angular_core.APP_INITIALIZER,
+            useFactory: (function (injector) { return function () { return initWebWorkerApplication(injector); }; }),
+            multi: true,
+            deps: [_angular_core.Injector]
+        },
+        {
+            provide: MessageBus,
+            useFactory: function (instance) { return instance.bus; },
+            deps: [WebWorkerInstance]
+        }
     ];
     function initializeGenericWorkerRenderer(injector) {
         var bus = injector.get(MessageBus);
@@ -4257,6 +4137,18 @@ var __extends = (this && this.__extends) || function (d, b) {
         // initialize message services after the bus has been created
         var services = injector.get(WORKER_RENDER_STARTABLE_MESSAGING_SERVICE);
         zone.runGuarded(function () { services.forEach(function (svc) { svc.start(); }); });
+    }
+    function bootstrapRender(workerScriptUri, customProviders) {
+        var app = _angular_core.ReflectiveInjector.resolveAndCreate([
+            WORKER_RENDER_APPLICATION_PROVIDERS,
+            BROWSER_APP_COMPILER_PROVIDERS,
+            { provide: WORKER_SCRIPT, useValue: workerScriptUri },
+            isPresent(customProviders) ? customProviders : []
+        ], workerRenderPlatform().injector);
+        // Return a promise so that we keep the same semantics as Dart,
+        // and we might want to wait for the app side to come up
+        // in the future...
+        return PromiseWrapper.resolve(app.get(_angular_core.ApplicationRef));
     }
     function initWebWorkerRenderPlatform() {
         BrowserDomAdapter.makeCurrent();
@@ -4274,6 +4166,33 @@ var __extends = (this && this.__extends) || function (d, b) {
     }
     function _document$1() {
         return getDOM().defaultDoc();
+    }
+    function initWebWorkerApplication(injector) {
+        var scriptUri;
+        try {
+            scriptUri = injector.get(WORKER_SCRIPT);
+        }
+        catch (e) {
+            throw new BaseException$1("You must provide your WebWorker's initialization script with the WORKER_SCRIPT token");
+        }
+        var instance = injector.get(WebWorkerInstance);
+        spawnWebWorker(scriptUri, instance);
+        initializeGenericWorkerRenderer(injector);
+    }
+    /**
+     * Spawns a new class and initializes the WebWorkerInstance
+     */
+    function spawnWebWorker(uri, instance) {
+        var webWorker = new Worker(uri);
+        var sink = new PostMessageBusSink(webWorker);
+        var source = new PostMessageBusSource(webWorker);
+        var bus = new PostMessageBus(sink, source);
+        instance.init(webWorker, bus);
+    }
+    function _resolveDefaultAnimationDriver$1() {
+        // web workers have not been tested or configured to
+        // work with animations just yet...
+        return new NoOpAnimationDriver();
     }
     var WebWorkerRootRenderer = (function () {
         function WebWorkerRootRenderer(messageBrokerFactory, bus, _serializer, _renderStore) {
@@ -4425,6 +4344,9 @@ var __extends = (this && this.__extends) || function (d, b) {
                 new FnArg(isAdd, null)
             ]);
         };
+        WebWorkerRenderer.prototype.setElementStyles = function (renderElement, styles) {
+            this._runOnService('setElementStyles', [new FnArg(renderElement, RenderStoreObject), new FnArg(styles, null)]);
+        };
         WebWorkerRenderer.prototype.setElementStyle = function (renderElement, styleName, styleValue) {
             this._runOnService('setElementStyle', [
                 new FnArg(renderElement, RenderStoreObject),
@@ -4466,6 +4388,10 @@ var __extends = (this && this.__extends) || function (d, b) {
                 _this._runOnService('listenDone', [new FnArg(unlistenCallbackId, null)]);
             };
         };
+        WebWorkerRenderer.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing) {
+            // TODO
+            return null;
+        };
         return WebWorkerRenderer;
     }());
     var NamedEventEmitter = (function () {
@@ -4503,260 +4429,6 @@ var __extends = (this && this.__extends) || function (d, b) {
         }
         return WebWorkerRenderNode;
     }());
-    var PrintLogger = (function () {
-        function PrintLogger() {
-            this.log = print;
-            this.logError = print;
-            this.logGroup = print;
-        }
-        PrintLogger.prototype.logGroupEnd = function () { };
-        return PrintLogger;
-    }());
-    var WORKER_APP_PLATFORM_MARKER = 
-    /*@ts2dart_const*/ new _angular_core.OpaqueToken('WorkerAppPlatformMarker');
-    var WORKER_APP_PLATFORM_PROVIDERS = 
-    /*@ts2dart_const*/ [
-        _angular_core.PLATFORM_COMMON_PROVIDERS,
-        /*@ts2dart_const*/ (
-        /* @ts2dart_Provider */ { provide: WORKER_APP_PLATFORM_MARKER, useValue: true })
-    ];
-    var WORKER_APP_APPLICATION_COMMON_PROVIDERS = 
-    /*@ts2dart_const*/ [
-        _angular_core.APPLICATION_COMMON_PROVIDERS,
-        _angular_common.FORM_PROVIDERS,
-        BROWSER_SANITIZATION_PROVIDERS,
-        Serializer,
-        /* @ts2dart_Provider */ { provide: _angular_core.PLATFORM_PIPES, useValue: _angular_common.COMMON_PIPES, multi: true },
-        /* @ts2dart_Provider */ { provide: _angular_core.PLATFORM_DIRECTIVES, useValue: _angular_common.COMMON_DIRECTIVES, multi: true },
-        /* @ts2dart_Provider */ { provide: ClientMessageBrokerFactory, useClass: ClientMessageBrokerFactory_ },
-        /* @ts2dart_Provider */ { provide: ServiceMessageBrokerFactory, useClass: ServiceMessageBrokerFactory_ },
-        WebWorkerRootRenderer,
-        /* @ts2dart_Provider */ { provide: _angular_core.RootRenderer, useExisting: WebWorkerRootRenderer },
-        /* @ts2dart_Provider */ { provide: ON_WEB_WORKER, useValue: true },
-        RenderStore,
-        /* @ts2dart_Provider */ { provide: _angular_core.ExceptionHandler, useFactory: _exceptionHandler$2, deps: [] }
-    ];
-    function workerAppPlatform() {
-        if (isBlank(_angular_core.getPlatform())) {
-            _angular_core.createPlatform(_angular_core.ReflectiveInjector.resolveAndCreate(WORKER_APP_PLATFORM_PROVIDERS));
-        }
-        return _angular_core.assertPlatform(WORKER_APP_PLATFORM_MARKER);
-    }
-    function _exceptionHandler$2() {
-        return new _angular_core.ExceptionHandler(new PrintLogger());
-    }
-    var PostMessageBusSink = (function () {
-        function PostMessageBusSink(_postMessageTarget) {
-            this._postMessageTarget = _postMessageTarget;
-            this._channels = StringMapWrapper.create();
-            this._messageBuffer = [];
-        }
-        PostMessageBusSink.prototype.attachToZone = function (zone) {
-            var _this = this;
-            this._zone = zone;
-            this._zone.runOutsideAngular(function () {
-                ObservableWrapper.subscribe(_this._zone.onStable, function (_) { _this._handleOnEventDone(); });
-            });
-        };
-        PostMessageBusSink.prototype.initChannel = function (channel, runInZone) {
-            var _this = this;
-            if (runInZone === void 0) { runInZone = true; }
-            if (StringMapWrapper.contains(this._channels, channel)) {
-                throw new BaseException(channel + " has already been initialized");
-            }
-            var emitter = new EventEmitter(false);
-            var channelInfo = new _Channel(emitter, runInZone);
-            this._channels[channel] = channelInfo;
-            emitter.subscribe(function (data) {
-                var message = { channel: channel, message: data };
-                if (runInZone) {
-                    _this._messageBuffer.push(message);
-                }
-                else {
-                    _this._sendMessages([message]);
-                }
-            });
-        };
-        PostMessageBusSink.prototype.to = function (channel) {
-            if (StringMapWrapper.contains(this._channels, channel)) {
-                return this._channels[channel].emitter;
-            }
-            else {
-                throw new BaseException(channel + " is not set up. Did you forget to call initChannel?");
-            }
-        };
-        PostMessageBusSink.prototype._handleOnEventDone = function () {
-            if (this._messageBuffer.length > 0) {
-                this._sendMessages(this._messageBuffer);
-                this._messageBuffer = [];
-            }
-        };
-        PostMessageBusSink.prototype._sendMessages = function (messages) { this._postMessageTarget.postMessage(messages); };
-        return PostMessageBusSink;
-    }());
-    var PostMessageBusSource = (function () {
-        function PostMessageBusSource(eventTarget) {
-            var _this = this;
-            this._channels = StringMapWrapper.create();
-            if (eventTarget) {
-                eventTarget.addEventListener("message", function (ev) { return _this._handleMessages(ev); });
-            }
-            else {
-                // if no eventTarget is given we assume we're in a WebWorker and listen on the global scope
-                addEventListener("message", function (ev) { return _this._handleMessages(ev); });
-            }
-        }
-        PostMessageBusSource.prototype.attachToZone = function (zone) { this._zone = zone; };
-        PostMessageBusSource.prototype.initChannel = function (channel, runInZone) {
-            if (runInZone === void 0) { runInZone = true; }
-            if (StringMapWrapper.contains(this._channels, channel)) {
-                throw new BaseException(channel + " has already been initialized");
-            }
-            var emitter = new EventEmitter(false);
-            var channelInfo = new _Channel(emitter, runInZone);
-            this._channels[channel] = channelInfo;
-        };
-        PostMessageBusSource.prototype.from = function (channel) {
-            if (StringMapWrapper.contains(this._channels, channel)) {
-                return this._channels[channel].emitter;
-            }
-            else {
-                throw new BaseException(channel + " is not set up. Did you forget to call initChannel?");
-            }
-        };
-        PostMessageBusSource.prototype._handleMessages = function (ev) {
-            var messages = ev.data;
-            for (var i = 0; i < messages.length; i++) {
-                this._handleMessage(messages[i]);
-            }
-        };
-        PostMessageBusSource.prototype._handleMessage = function (data) {
-            var channel = data.channel;
-            if (StringMapWrapper.contains(this._channels, channel)) {
-                var channelInfo = this._channels[channel];
-                if (channelInfo.runInZone) {
-                    this._zone.run(function () { channelInfo.emitter.emit(data.message); });
-                }
-                else {
-                    channelInfo.emitter.emit(data.message);
-                }
-            }
-        };
-        return PostMessageBusSource;
-    }());
-    var PostMessageBus = (function () {
-        function PostMessageBus(sink, source) {
-            this.sink = sink;
-            this.source = source;
-        }
-        PostMessageBus.prototype.attachToZone = function (zone) {
-            this.source.attachToZone(zone);
-            this.sink.attachToZone(zone);
-        };
-        PostMessageBus.prototype.initChannel = function (channel, runInZone) {
-            if (runInZone === void 0) { runInZone = true; }
-            this.source.initChannel(channel, runInZone);
-            this.sink.initChannel(channel, runInZone);
-        };
-        PostMessageBus.prototype.from = function (channel) { return this.source.from(channel); };
-        PostMessageBus.prototype.to = function (channel) { return this.sink.to(channel); };
-        return PostMessageBus;
-    }());
-    PostMessageBus.decorators = [
-        { type: _angular_core.Injectable },
-    ];
-    PostMessageBus.ctorParameters = [
-        { type: PostMessageBusSink, },
-        { type: PostMessageBusSource, },
-    ];
-    /**
-     * Helper class that wraps a channel's {@link EventEmitter} and
-     * keeps track of if it should run in the zone.
-     */
-    var _Channel = (function () {
-        function _Channel(emitter, runInZone) {
-            this.emitter = emitter;
-            this.runInZone = runInZone;
-        }
-        return _Channel;
-    }());
-    var WebWorkerInstance = (function () {
-        function WebWorkerInstance() {
-        }
-        /** @internal */
-        WebWorkerInstance.prototype.init = function (worker, bus) {
-            this.worker = worker;
-            this.bus = bus;
-        };
-        return WebWorkerInstance;
-    }());
-    WebWorkerInstance.decorators = [
-        { type: _angular_core.Injectable },
-    ];
-    /**
-     * An array of providers that should be passed into `application()` when initializing a new Worker.
-     */
-    var WORKER_RENDER_STATIC_APPLICATION_PROVIDERS = [
-        WORKER_RENDER_APPLICATION_COMMON_PROVIDERS, WebWorkerInstance,
-        /*@ts2dart_Provider*/ {
-            provide: _angular_core.APP_INITIALIZER,
-            useFactory: (function (injector) { return function () { return initWebWorkerApplication(injector); }; }),
-            multi: true,
-            deps: [_angular_core.Injector]
-        },
-        /*@ts2dart_Provider*/ {
-            provide: MessageBus,
-            useFactory: function (instance) { return instance.bus; },
-            deps: [WebWorkerInstance]
-        }
-    ];
-    function bootstrapStaticRender(workerScriptUri, customProviders) {
-        var app = _angular_core.ReflectiveInjector.resolveAndCreate([
-            WORKER_RENDER_STATIC_APPLICATION_PROVIDERS,
-            /* @ts2dart_Provider */ { provide: WORKER_SCRIPT, useValue: workerScriptUri },
-            isPresent(customProviders) ? customProviders : []
-        ], workerRenderPlatform().injector);
-        // Return a promise so that we keep the same semantics as Dart,
-        // and we might want to wait for the app side to come up
-        // in the future...
-        return PromiseWrapper.resolve(app.get(_angular_core.ApplicationRef));
-    }
-    function initWebWorkerApplication(injector) {
-        var scriptUri;
-        try {
-            scriptUri = injector.get(WORKER_SCRIPT);
-        }
-        catch (e) {
-            throw new BaseException("You must provide your WebWorker's initialization script with the WORKER_SCRIPT token");
-        }
-        var instance = injector.get(WebWorkerInstance);
-        spawnWebWorker(scriptUri, instance);
-        initializeGenericWorkerRenderer(injector);
-    }
-    /**
-     * Spawns a new class and initializes the WebWorkerInstance
-     */
-    function spawnWebWorker(uri, instance) {
-        var webWorker = new Worker(uri);
-        var sink = new PostMessageBusSink(webWorker);
-        var source = new PostMessageBusSource(webWorker);
-        var bus = new PostMessageBus(sink, source);
-        instance.init(webWorker, bus);
-    }
-    var WORKER_RENDER_APPLICATION_PROVIDERS = [
-        WORKER_RENDER_STATIC_APPLICATION_PROVIDERS
-    ];
-    function bootstrapRender(workerScriptUri, customProviders) {
-        var app = _angular_core.ReflectiveInjector.resolveAndCreate([
-            WORKER_RENDER_APPLICATION_PROVIDERS,
-            /* @ts2dart_Provider */ { provide: WORKER_SCRIPT, useValue: workerScriptUri },
-            isPresent(customProviders) ? customProviders : []
-        ], workerRenderPlatform().injector);
-        // Return a promise so that we keep the same semantics as Dart,
-        // and we might want to wait for the app side to come up
-        // in the future...
-        return PromiseWrapper.resolve(app.get(_angular_core.ApplicationRef));
-    }
     /**
      * This adapter is required to log error messages.
      *
@@ -4910,23 +4582,63 @@ var __extends = (this && this.__extends) || function (d, b) {
         WorkerDomAdapter.prototype.getAnimationPrefix = function () { throw "not implemented"; };
         WorkerDomAdapter.prototype.getTransitionEnd = function () { throw "not implemented"; };
         WorkerDomAdapter.prototype.supportsAnimation = function () { throw "not implemented"; };
+        WorkerDomAdapter.prototype.supportsWebAnimation = function () { throw "not implemented"; };
         return WorkerDomAdapter;
     }(DomAdapter));
+    var PrintLogger = (function () {
+        function PrintLogger() {
+            this.log = print;
+            this.logError = print;
+            this.logGroup = print;
+        }
+        PrintLogger.prototype.logGroupEnd = function () { };
+        return PrintLogger;
+    }());
+    var WORKER_APP_PLATFORM_MARKER = new _angular_core.OpaqueToken('WorkerAppPlatformMarker');
+    var WORKER_APP_PLATFORM_PROVIDERS = [
+        _angular_core.PLATFORM_COMMON_PROVIDERS,
+        { provide: WORKER_APP_PLATFORM_MARKER, useValue: true }
+    ];
+    var WORKER_APP_APPLICATION_PROVIDERS = [
+        _angular_core.APPLICATION_COMMON_PROVIDERS,
+        _angular_common.FORM_PROVIDERS,
+        BROWSER_SANITIZATION_PROVIDERS,
+        Serializer,
+        { provide: _angular_core.PLATFORM_PIPES, useValue: _angular_common.COMMON_PIPES, multi: true },
+        { provide: _angular_core.PLATFORM_DIRECTIVES, useValue: _angular_common.COMMON_DIRECTIVES, multi: true },
+        { provide: ClientMessageBrokerFactory, useClass: ClientMessageBrokerFactory_ },
+        { provide: ServiceMessageBrokerFactory, useClass: ServiceMessageBrokerFactory_ },
+        WebWorkerRootRenderer,
+        { provide: _angular_core.RootRenderer, useExisting: WebWorkerRootRenderer },
+        { provide: ON_WEB_WORKER, useValue: true },
+        RenderStore,
+        { provide: _angular_core.ExceptionHandler, useFactory: _exceptionHandler$2, deps: [] },
+        { provide: MessageBus, useFactory: createMessageBus, deps: [_angular_core.NgZone] },
+        { provide: _angular_core.APP_INITIALIZER, useValue: setupWebWorker, multi: true }
+    ];
+    function workerAppPlatform() {
+        if (isBlank(_angular_core.getPlatform())) {
+            _angular_core.createPlatform(_angular_core.ReflectiveInjector.resolveAndCreate(WORKER_APP_PLATFORM_PROVIDERS));
+        }
+        return _angular_core.assertPlatform(WORKER_APP_PLATFORM_MARKER);
+    }
+    function bootstrapApp(appComponentType, customProviders) {
+        var appInjector = _angular_core.ReflectiveInjector.resolveAndCreate([
+            WORKER_APP_APPLICATION_PROVIDERS,
+            _angular_compiler.COMPILER_PROVIDERS,
+            { provide: _angular_compiler.XHR, useClass: XHRImpl },
+            isPresent(customProviders) ? customProviders : []], workerAppPlatform().injector);
+        return _angular_core.coreLoadAndBootstrap(appComponentType, appInjector);
+    }
+    function _exceptionHandler$2() {
+        return new _angular_core.ExceptionHandler(new PrintLogger());
+    }
     // TODO(jteplitz602) remove this and compile with lib.webworker.d.ts (#3492)
     var _postMessage = {
         postMessage: function (message, transferrables) {
             postMessage(message, transferrables);
         }
     };
-    var WORKER_APP_STATIC_APPLICATION_PROVIDERS = [
-        WORKER_APP_APPLICATION_COMMON_PROVIDERS,
-        /* @ts2dart_Provider */ { provide: MessageBus, useFactory: createMessageBus, deps: [_angular_core.NgZone] },
-        /* @ts2dart_Provider */ { provide: _angular_core.APP_INITIALIZER, useValue: setupWebWorker, multi: true }
-    ];
-    function bootstrapStaticApp(appComponentType, customProviders) {
-        var appInjector = _angular_core.ReflectiveInjector.resolveAndCreate([WORKER_APP_STATIC_APPLICATION_PROVIDERS, isPresent(customProviders) ? customProviders : []], workerAppPlatform().injector);
-        return _angular_core.coreLoadAndBootstrap(appInjector, appComponentType);
-    }
     function createMessageBus(zone) {
         var sink = new PostMessageBusSink(_postMessage);
         var source = new PostMessageBusSource();
@@ -4936,15 +4648,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     }
     function setupWebWorker() {
         WorkerDomAdapter.makeCurrent();
-    }
-    var WORKER_APP_APPLICATION_PROVIDERS = [
-        WORKER_APP_STATIC_APPLICATION_PROVIDERS,
-        _angular_compiler.COMPILER_PROVIDERS,
-        /* @ts2dart_Provider */ { provide: _angular_compiler.XHR, useClass: XHRImpl },
-    ];
-    function bootstrapApp(appComponentType, customProviders) {
-        var appInjector = _angular_core.ReflectiveInjector.resolveAndCreate([WORKER_APP_APPLICATION_PROVIDERS, isPresent(customProviders) ? customProviders : []], workerAppPlatform().injector);
-        return _angular_core.coreLoadAndBootstrap(appInjector, appComponentType);
     }
     exports.__platform_browser_private__;
     (function (__platform_browser_private__) {
@@ -4978,32 +4681,24 @@ var __extends = (this && this.__extends) || function (d, b) {
     exports.PRIMITIVE = PRIMITIVE;
     exports.WORKER_APP_LOCATION_PROVIDERS = WORKER_APP_LOCATION_PROVIDERS;
     exports.WORKER_RENDER_LOCATION_PROVIDERS = WORKER_RENDER_LOCATION_PROVIDERS;
+    exports.CACHED_TEMPLATE_PROVIDER = CACHED_TEMPLATE_PROVIDER;
     exports.BROWSER_PLATFORM_PROVIDERS = BROWSER_PLATFORM_PROVIDERS;
     exports.BROWSER_SANITIZATION_PROVIDERS = BROWSER_SANITIZATION_PROVIDERS;
-    exports.BROWSER_APP_COMMON_PROVIDERS = BROWSER_APP_COMMON_PROVIDERS;
-    exports.browserPlatform = browserPlatform;
-    exports.BROWSER_APP_STATIC_PROVIDERS = BROWSER_APP_STATIC_PROVIDERS;
-    exports.bootstrapStatic = bootstrapStatic;
-    exports.CACHED_TEMPLATE_PROVIDER = CACHED_TEMPLATE_PROVIDER;
     exports.BROWSER_APP_PROVIDERS = BROWSER_APP_PROVIDERS;
+    exports.BROWSER_APP_COMPILER_PROVIDERS = BROWSER_APP_COMPILER_PROVIDERS;
+    exports.browserPlatform = browserPlatform;
     exports.bootstrap = bootstrap;
     exports.MessageBus = MessageBus;
+    exports.WebWorkerInstance = WebWorkerInstance;
     exports.WORKER_SCRIPT = WORKER_SCRIPT;
     exports.WORKER_RENDER_STARTABLE_MESSAGING_SERVICE = WORKER_RENDER_STARTABLE_MESSAGING_SERVICE;
     exports.WORKER_RENDER_PLATFORM_PROVIDERS = WORKER_RENDER_PLATFORM_PROVIDERS;
-    exports.WORKER_RENDER_APPLICATION_COMMON_PROVIDERS = WORKER_RENDER_APPLICATION_COMMON_PROVIDERS;
+    exports.WORKER_RENDER_APPLICATION_PROVIDERS = WORKER_RENDER_APPLICATION_PROVIDERS;
     exports.initializeGenericWorkerRenderer = initializeGenericWorkerRenderer;
+    exports.bootstrapRender = bootstrapRender;
     exports.workerRenderPlatform = workerRenderPlatform;
     exports.WORKER_APP_PLATFORM_PROVIDERS = WORKER_APP_PLATFORM_PROVIDERS;
-    exports.WORKER_APP_APPLICATION_COMMON_PROVIDERS = WORKER_APP_APPLICATION_COMMON_PROVIDERS;
-    exports.workerAppPlatform = workerAppPlatform;
-    exports.WORKER_RENDER_APPLICATION_PROVIDERS = WORKER_RENDER_APPLICATION_PROVIDERS;
-    exports.bootstrapRender = bootstrapRender;
     exports.WORKER_APP_APPLICATION_PROVIDERS = WORKER_APP_APPLICATION_PROVIDERS;
+    exports.workerAppPlatform = workerAppPlatform;
     exports.bootstrapApp = bootstrapApp;
-    exports.WebWorkerInstance = WebWorkerInstance;
-    exports.WORKER_RENDER_STATIC_APPLICATION_PROVIDERS = WORKER_RENDER_STATIC_APPLICATION_PROVIDERS;
-    exports.bootstrapStaticRender = bootstrapStaticRender;
-    exports.WORKER_APP_STATIC_APPLICATION_PROVIDERS = WORKER_APP_STATIC_APPLICATION_PROVIDERS;
-    exports.bootstrapStaticApp = bootstrapStaticApp;
 }));

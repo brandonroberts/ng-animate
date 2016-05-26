@@ -101,6 +101,9 @@ export class DebugDomRenderer {
     setElementClass(renderElement, className, isAdd) {
         this._delegate.setElementClass(renderElement, className, isAdd);
     }
+    setElementStyles(renderElement, styles) {
+        this._delegate.setElementStyles(renderElement, styles);
+    }
     setElementStyle(renderElement, styleName, styleValue) {
         this._delegate.setElementStyle(renderElement, styleName, styleValue);
     }
@@ -108,5 +111,8 @@ export class DebugDomRenderer {
         this._delegate.invokeElementMethod(renderElement, methodName, args);
     }
     setText(renderNode, text) { this._delegate.setText(renderNode, text); }
+    animate(element, startingStyles, keyframes, duration, delay, easing) {
+        return this._delegate.animate(element, startingStyles, keyframes, duration, delay, easing);
+    }
 }
 //# sourceMappingURL=debug_renderer.js.map

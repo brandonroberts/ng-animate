@@ -4,8 +4,8 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var lang_1 = require('../src/facade/lang');
-var collection_1 = require('../src/facade/collection');
+var lang_1 = require('./facade/lang');
+var collection_1 = require('./facade/collection');
 var parse_util_1 = require('./parse_util');
 var html_tags_1 = require('./html_tags');
 (function (HtmlTokenType) {
@@ -266,8 +266,16 @@ var _HtmlTokenizer = (function () {
         }
     };
     _HtmlTokenizer.prototype._attemptStr = function (chars) {
+        var indexBeforeAttempt = this.index;
+        var columnBeforeAttempt = this.column;
+        var lineBeforeAttempt = this.line;
         for (var i = 0; i < chars.length; i++) {
             if (!this._attemptCharCode(lang_1.StringWrapper.charCodeAt(chars, i))) {
+                // If attempting to parse the string fails, we want to reset the parser
+                // to where it was before the attempt
+                this.index = indexBeforeAttempt;
+                this.column = columnBeforeAttempt;
+                this.line = lineBeforeAttempt;
                 return false;
             }
         }

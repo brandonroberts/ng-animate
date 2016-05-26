@@ -32,6 +32,7 @@ function constructResolvingPath(keys) {
 }
 /**
  * Base class for all errors arising from misconfigured providers.
+ * @stable
  */
 var AbstractProviderError = (function (_super) {
     __extends(AbstractProviderError, _super);
@@ -68,6 +69,7 @@ exports.AbstractProviderError = AbstractProviderError;
  *
  * expect(() => Injector.resolveAndCreate([A])).toThrowError();
  * ```
+ * @stable
  */
 var NoProviderError = (function (_super) {
     __extends(NoProviderError, _super);
@@ -95,6 +97,7 @@ exports.NoProviderError = NoProviderError;
  * ```
  *
  * Retrieving `A` or `B` throws a `CyclicDependencyError` as the graph above cannot be constructed.
+ * @stable
  */
 var CyclicDependencyError = (function (_super) {
     __extends(CyclicDependencyError, _super);
@@ -131,6 +134,7 @@ exports.CyclicDependencyError = CyclicDependencyError;
  *   expect(e.originalStack).toBeDefined();
  * }
  * ```
+ * @stable
  */
 var InstantiationError = (function (_super) {
     __extends(InstantiationError, _super);
@@ -173,12 +177,12 @@ exports.InstantiationError = InstantiationError;
  * ```typescript
  * expect(() => Injector.resolveAndCreate(["not a type"])).toThrowError();
  * ```
+ * @stable
  */
 var InvalidProviderError = (function (_super) {
     __extends(InvalidProviderError, _super);
     function InvalidProviderError(provider) {
-        _super.call(this, "Invalid provider - only instances of Provider and Type are allowed, got: " +
-            provider.toString());
+        _super.call(this, "Invalid provider - only instances of Provider and Type are allowed, got: " + provider);
     }
     return InvalidProviderError;
 }(exceptions_1.BaseException));
@@ -210,6 +214,7 @@ exports.InvalidProviderError = InvalidProviderError;
  *
  * expect(() => Injector.resolveAndCreate([A,B])).toThrowError();
  * ```
+ * @stable
  */
 var NoAnnotationError = (function (_super) {
     __extends(NoAnnotationError, _super);
@@ -247,6 +252,7 @@ exports.NoAnnotationError = NoAnnotationError;
  *
  * expect(() => injector.getAt(100)).toThrowError();
  * ```
+ * @stable
  */
 var OutOfBoundsError = (function (_super) {
     __extends(OutOfBoundsError, _super);

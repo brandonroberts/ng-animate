@@ -11,6 +11,7 @@ import { Console } from './console';
 import { wtfLeave, wtfCreateScope } from './profile/profile';
 /**
  * Create an Angular zone.
+ * @experimental
  */
 export function createNgZone() {
     return new NgZone({ enableLongStackTrace: assertionsEnabled() });
@@ -20,6 +21,7 @@ var _inPlatformCreate = false;
 /**
  * Creates a platform.
  * Platforms have to be eagerly created via this function.
+ * @experimental
  */
 export function createPlatform(injector) {
     if (_inPlatformCreate) {
@@ -41,11 +43,12 @@ export function createPlatform(injector) {
 /**
  * Checks that there currently is a platform
  * which contains the given token as a provider.
+ * @experimental
  */
 export function assertPlatform(requiredToken) {
     var platform = getPlatform();
     if (isBlank(platform)) {
-        throw new BaseException('Not platform exists!');
+        throw new BaseException('No platform exists!');
     }
     if (isPresent(platform) && isBlank(platform.injector.get(requiredToken, null))) {
         throw new BaseException('A platform with a different configuration has been created. Please destroy it first.');
@@ -54,6 +57,7 @@ export function assertPlatform(requiredToken) {
 }
 /**
  * Dispose the existing platform.
+ * @experimental
  */
 export function disposePlatform() {
     if (isPresent(_platform) && !_platform.disposed) {
@@ -62,24 +66,27 @@ export function disposePlatform() {
 }
 /**
  * Returns the current platform.
+ * @experimental
  */
 export function getPlatform() {
     return isPresent(_platform) && !_platform.disposed ? _platform : null;
 }
 /**
  * Shortcut for ApplicationRef.bootstrap.
- * Requires a platform the be created first.
+ * Requires a platform to be created first.
+ * @experimental
  */
-export function coreBootstrap(injector, componentFactory) {
+export function coreBootstrap(componentFactory, injector) {
     var appRef = injector.get(ApplicationRef);
     return appRef.bootstrap(componentFactory);
 }
 /**
  * Resolves the componentFactory for the given component,
  * waits for asynchronous initializers and bootstraps the component.
- * Requires a platform the be created first.
+ * Requires a platform to be created first.
+ * @experimental
  */
-export function coreLoadAndBootstrap(injector, componentType) {
+export function coreLoadAndBootstrap(componentType, injector) {
     var appRef = injector.get(ApplicationRef);
     return appRef.run(() => {
         var componentResolver = injector.get(ComponentResolver);
@@ -95,6 +102,7 @@ export function coreLoadAndBootstrap(injector, componentType) {
  *
  * A page's platform is initialized implicitly when {@link bootstrap}() is called, or
  * explicitly by calling {@link createPlatform}().
+ * @stable
  */
 export class PlatformRef {
     /**
@@ -143,6 +151,7 @@ PlatformRef_.ctorParameters = [
  * A reference to an Angular application running on a page.
  *
  * For more about Angular applications, see the documentation for {@link bootstrap}.
+ * @stable
  */
 export class ApplicationRef {
     /**
@@ -324,9 +333,6 @@ ApplicationRef_.ctorParameters = [
     { type: NgZone, },
     { type: Injector, },
 ];
-/**
- * @internal
- */
 export const PLATFORM_CORE_PROVIDERS = 
 /*@ts2dart_const*/ [
     PlatformRef_,

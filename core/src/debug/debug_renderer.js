@@ -104,6 +104,9 @@ var DebugDomRenderer = (function () {
     DebugDomRenderer.prototype.setElementClass = function (renderElement, className, isAdd) {
         this._delegate.setElementClass(renderElement, className, isAdd);
     };
+    DebugDomRenderer.prototype.setElementStyles = function (renderElement, styles) {
+        this._delegate.setElementStyles(renderElement, styles);
+    };
     DebugDomRenderer.prototype.setElementStyle = function (renderElement, styleName, styleValue) {
         this._delegate.setElementStyle(renderElement, styleName, styleValue);
     };
@@ -111,6 +114,9 @@ var DebugDomRenderer = (function () {
         this._delegate.invokeElementMethod(renderElement, methodName, args);
     };
     DebugDomRenderer.prototype.setText = function (renderNode, text) { this._delegate.setText(renderNode, text); };
+    DebugDomRenderer.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing) {
+        return this._delegate.animate(element, startingStyles, keyframes, duration, delay, easing);
+    };
     return DebugDomRenderer;
 }());
 exports.DebugDomRenderer = DebugDomRenderer;

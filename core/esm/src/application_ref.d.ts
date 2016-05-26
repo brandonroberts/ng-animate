@@ -5,37 +5,44 @@ import { ComponentRef, ComponentFactory } from './linker/component_factory';
 import { ChangeDetectorRef } from './change_detection/change_detector_ref';
 /**
  * Create an Angular zone.
+ * @experimental
  */
 export declare function createNgZone(): NgZone;
 /**
  * Creates a platform.
  * Platforms have to be eagerly created via this function.
+ * @experimental
  */
 export declare function createPlatform(injector: Injector): PlatformRef;
 /**
  * Checks that there currently is a platform
  * which contains the given token as a provider.
+ * @experimental
  */
 export declare function assertPlatform(requiredToken: any): PlatformRef;
 /**
  * Dispose the existing platform.
+ * @experimental
  */
 export declare function disposePlatform(): void;
 /**
  * Returns the current platform.
+ * @experimental
  */
 export declare function getPlatform(): PlatformRef;
 /**
  * Shortcut for ApplicationRef.bootstrap.
- * Requires a platform the be created first.
+ * Requires a platform to be created first.
+ * @experimental
  */
-export declare function coreBootstrap<C>(injector: Injector, componentFactory: ComponentFactory<C>): ComponentRef<C>;
+export declare function coreBootstrap<C>(componentFactory: ComponentFactory<C>, injector: Injector): ComponentRef<C>;
 /**
  * Resolves the componentFactory for the given component,
  * waits for asynchronous initializers and bootstraps the component.
- * Requires a platform the be created first.
+ * Requires a platform to be created first.
+ * @experimental
  */
-export declare function coreLoadAndBootstrap(injector: Injector, componentType: Type): Promise<ComponentRef<any>>;
+export declare function coreLoadAndBootstrap(componentType: Type, injector: Injector): Promise<ComponentRef<any>>;
 /**
  * The Angular platform is the entry point for Angular on a web page. Each page
  * has exactly one platform, and services (such as reflection) which are common
@@ -43,6 +50,7 @@ export declare function coreLoadAndBootstrap(injector: Injector, componentType: 
  *
  * A page's platform is initialized implicitly when {@link bootstrap}() is called, or
  * explicitly by calling {@link createPlatform}().
+ * @stable
  */
 export declare abstract class PlatformRef {
     /**
@@ -74,6 +82,7 @@ export declare class PlatformRef_ extends PlatformRef {
  * A reference to an Angular application running on a page.
  *
  * For more about Angular applications, see the documentation for {@link bootstrap}.
+ * @stable
  */
 export declare abstract class ApplicationRef {
     /**
@@ -157,3 +166,7 @@ export declare class ApplicationRef_ extends ApplicationRef {
     dispose(): void;
     readonly componentTypes: Type[];
 }
+export declare const PLATFORM_CORE_PROVIDERS: (typeof PlatformRef_ | {
+    provide: typeof PlatformRef;
+    useExisting: typeof PlatformRef_;
+})[];

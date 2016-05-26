@@ -563,10 +563,17 @@ var __extends = (this && this.__extends) || function (d, b) {
      * }
      * ```
      *
-     * Use Rx.Observable but provides an adapter to make it work as specified here:
+     * The events payload can be accessed by the parameter `$event` on the components output event handler:
+     *
+     * ```
+     * <zippy (open)="onOpen($event)" (close)="onClose($event)"></zippy>
+     * ```
+     *
+     * Uses Rx.Observable but provides an adapter to make it work as specified here:
      * https://github.com/jhusain/observable-spec
      *
      * Once a reference implementation of the spec is available, switch to it.
+     * @stable
      */
     var EventEmitter = (function (_super) {
         __extends(EventEmitter, _super);
@@ -799,6 +806,8 @@ var __extends = (this && this.__extends) || function (d, b) {
         RoutesMetadata.prototype.toString = function () { return "@Routes(" + this.routes + ")"; };
         return RoutesMetadata;
     }());
+    var makeDecorator = _angular_core.__core_private__.makeDecorator;
+    var reflector = _angular_core.__core_private__.reflector;
     function recognize(componentResolver, rootComponent, url, existingTree) {
         var matched = new _MatchResult(rootComponent, [url.root], {}, rootNode(url).children, []);
         return _constructSegment(componentResolver, matched, rootNode(existingTree))
@@ -960,9 +969,12 @@ var __extends = (this && this.__extends) || function (d, b) {
         return _MatchResult;
     }());
     function _readMetadata(componentType) {
-        var metadata = _angular_core.reflector.annotations(componentType).filter(function (f) { return f instanceof RoutesMetadata; });
+        var metadata = reflector.annotations(componentType).filter(function (f) { return f instanceof RoutesMetadata; });
         return ListWrapper.first(metadata);
     }
+    /**
+     * @stable
+     */
     var BaseException$1 = (function (_super) {
         __extends(BaseException$1, _super);
         function BaseException$1(message) {
@@ -1421,7 +1433,6 @@ var __extends = (this && this.__extends) || function (d, b) {
         };
         return _ActivateSegments;
     }());
-    var makeDecorator = _angular_core.__core_private__.makeDecorator;
     /**
      * Defines routes for a given component.
      *

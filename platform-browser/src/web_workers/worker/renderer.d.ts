@@ -4,6 +4,7 @@ import { ClientMessageBrokerFactory, FnArg } from '../shared/client_message_brok
 import { RenderStore } from '../shared/render_store';
 import { Serializer, RenderStoreObject } from '../shared/serializer';
 import { MessageBus } from '../shared/message_bus';
+import { AnimationKeyframe, AnimationPlayer, AnimationStyles } from '../../../core_private';
 export declare class WebWorkerRootRenderer implements RootRenderer {
     private _serializer;
     private _renderStore;
@@ -36,11 +37,15 @@ export declare class WebWorkerRenderer implements Renderer, RenderStoreObject {
     setElementAttribute(renderElement: any, attributeName: string, attributeValue: string): void;
     setBindingDebugInfo(renderElement: any, propertyName: string, propertyValue: string): void;
     setElementClass(renderElement: any, className: string, isAdd: boolean): void;
+    setElementStyles(renderElement: any, styles: {
+        [key: string]: string;
+    }): void;
     setElementStyle(renderElement: any, styleName: string, styleValue: string): void;
     invokeElementMethod(renderElement: any, methodName: string, args: any[]): void;
     setText(renderNode: any, text: string): void;
     listen(renderElement: WebWorkerRenderNode, name: string, callback: Function): Function;
     listenGlobal(target: string, name: string, callback: Function): Function;
+    animate(element: any, startingStyles: AnimationStyles, keyframes: AnimationKeyframe[], duration: number, delay: number, easing: string): AnimationPlayer;
 }
 export declare class NamedEventEmitter {
     private _listeners;

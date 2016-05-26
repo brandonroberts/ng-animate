@@ -7,6 +7,7 @@ import { BrowserXhr } from './browser_xhr';
 import { isPresent, isString } from '../../src/facade/lang';
 import { Observable } from 'rxjs/Observable';
 import { isSuccess, getResponseURL } from '../http_utils';
+import { ContentType } from '../enums';
 const XSSI_PREFIX = ')]}\',\n';
 /**
  * Creates connections using `XMLHttpRequest`. Given a fully-qualified
@@ -22,6 +23,9 @@ export class XHRConnection {
         this.response = new Observable((responseObserver) => {
             let _xhr = browserXHR.build();
             _xhr.open(RequestMethod[req.method].toUpperCase(), req.url);
+            if (isPresent(req.withCredentials)) {
+                _xhr.withCredentials = req.withCredentials;
+            }
             // load event handler
             let onLoad = () => {
                 // responseText is the old-school way of retrieving response (supported by IE8 & 9)
@@ -48,7 +52,8 @@ export class XHRConnection {
                     responseOptions = baseResponseOptions.merge(responseOptions);
                 }
                 let response = new Response(responseOptions);
-                if (isSuccess(status)) {
+                response.ok = isSuccess(status);
+                if (response.ok) {
                     responseObserver.next(response);
                     // TODO(gdi2290): defer complete if array buffer until done
                     responseObserver.complete();
@@ -64,18 +69,45 @@ export class XHRConnection {
                 }
                 responseObserver.error(new Response(responseOptions));
             };
+            this.setDetectedContentType(req, _xhr);
             if (isPresent(req.headers)) {
                 req.headers.forEach((values, name) => _xhr.setRequestHeader(name, values.join(',')));
             }
             _xhr.addEventListener('load', onLoad);
             _xhr.addEventListener('error', onError);
-            _xhr.send(this.request.text());
+            _xhr.send(this.request.getBody());
             return () => {
                 _xhr.removeEventListener('load', onLoad);
                 _xhr.removeEventListener('error', onError);
                 _xhr.abort();
             };
         });
+    }
+    setDetectedContentType(req, _xhr) {
+        // Skip if a custom Content-Type header is provided
+        if (isPresent(req.headers) && isPresent(req.headers['Content-Type'])) {
+            return;
+        }
+        // Set the detected content type
+        switch (req.contentType) {
+            case ContentType.NONE:
+                break;
+            case ContentType.JSON:
+                _xhr.setRequestHeader('Content-Type', 'application/json');
+                break;
+            case ContentType.FORM:
+                _xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
+                break;
+            case ContentType.TEXT:
+                _xhr.setRequestHeader('Content-Type', 'text/plain');
+                break;
+            case ContentType.BLOB:
+                var blob = req.blob();
+                if (blob.type) {
+                    _xhr.setRequestHeader('Content-Type', blob.type);
+                }
+                break;
+        }
     }
 }
 export class XHRBackend {

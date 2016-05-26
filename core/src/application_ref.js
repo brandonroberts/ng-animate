@@ -17,6 +17,7 @@ var console_1 = require('./console');
 var profile_1 = require('./profile/profile');
 /**
  * Create an Angular zone.
+ * @experimental
  */
 function createNgZone() {
     return new ng_zone_1.NgZone({ enableLongStackTrace: lang_1.assertionsEnabled() });
@@ -27,6 +28,7 @@ var _inPlatformCreate = false;
 /**
  * Creates a platform.
  * Platforms have to be eagerly created via this function.
+ * @experimental
  */
 function createPlatform(injector) {
     if (_inPlatformCreate) {
@@ -49,11 +51,12 @@ exports.createPlatform = createPlatform;
 /**
  * Checks that there currently is a platform
  * which contains the given token as a provider.
+ * @experimental
  */
 function assertPlatform(requiredToken) {
     var platform = getPlatform();
     if (lang_1.isBlank(platform)) {
-        throw new exceptions_1.BaseException('Not platform exists!');
+        throw new exceptions_1.BaseException('No platform exists!');
     }
     if (lang_1.isPresent(platform) && lang_1.isBlank(platform.injector.get(requiredToken, null))) {
         throw new exceptions_1.BaseException('A platform with a different configuration has been created. Please destroy it first.');
@@ -63,6 +66,7 @@ function assertPlatform(requiredToken) {
 exports.assertPlatform = assertPlatform;
 /**
  * Dispose the existing platform.
+ * @experimental
  */
 function disposePlatform() {
     if (lang_1.isPresent(_platform) && !_platform.disposed) {
@@ -72,6 +76,7 @@ function disposePlatform() {
 exports.disposePlatform = disposePlatform;
 /**
  * Returns the current platform.
+ * @experimental
  */
 function getPlatform() {
     return lang_1.isPresent(_platform) && !_platform.disposed ? _platform : null;
@@ -79,9 +84,10 @@ function getPlatform() {
 exports.getPlatform = getPlatform;
 /**
  * Shortcut for ApplicationRef.bootstrap.
- * Requires a platform the be created first.
+ * Requires a platform to be created first.
+ * @experimental
  */
-function coreBootstrap(injector, componentFactory) {
+function coreBootstrap(componentFactory, injector) {
     var appRef = injector.get(ApplicationRef);
     return appRef.bootstrap(componentFactory);
 }
@@ -89,9 +95,10 @@ exports.coreBootstrap = coreBootstrap;
 /**
  * Resolves the componentFactory for the given component,
  * waits for asynchronous initializers and bootstraps the component.
- * Requires a platform the be created first.
+ * Requires a platform to be created first.
+ * @experimental
  */
-function coreLoadAndBootstrap(injector, componentType) {
+function coreLoadAndBootstrap(componentType, injector) {
     var appRef = injector.get(ApplicationRef);
     return appRef.run(function () {
         var componentResolver = injector.get(component_resolver_1.ComponentResolver);
@@ -108,6 +115,7 @@ exports.coreLoadAndBootstrap = coreLoadAndBootstrap;
  *
  * A page's platform is initialized implicitly when {@link bootstrap}() is called, or
  * explicitly by calling {@link createPlatform}().
+ * @stable
  */
 var PlatformRef = (function () {
     function PlatformRef() {
@@ -179,6 +187,7 @@ exports.PlatformRef_ = PlatformRef_;
  * A reference to an Angular application running on a page.
  *
  * For more about Angular applications, see the documentation for {@link bootstrap}.
+ * @stable
  */
 var ApplicationRef = (function () {
     function ApplicationRef() {
@@ -394,9 +403,6 @@ var ApplicationRef_ = (function (_super) {
     return ApplicationRef_;
 }(ApplicationRef));
 exports.ApplicationRef_ = ApplicationRef_;
-/**
- * @internal
- */
 exports.PLATFORM_CORE_PROVIDERS = 
 /*@ts2dart_const*/ [
     PlatformRef_,

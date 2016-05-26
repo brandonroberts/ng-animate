@@ -156,6 +156,9 @@ export class WebWorkerRenderer {
             new FnArg(isAdd, null)
         ]);
     }
+    setElementStyles(renderElement, styles) {
+        this._runOnService('setElementStyles', [new FnArg(renderElement, RenderStoreObject), new FnArg(styles, null)]);
+    }
     setElementStyle(renderElement, styleName, styleValue) {
         this._runOnService('setElementStyle', [
             new FnArg(renderElement, RenderStoreObject),
@@ -194,6 +197,10 @@ export class WebWorkerRenderer {
             this._rootRenderer.globalEvents.unlisten(eventNameWithTarget(target, name), callback);
             this._runOnService('listenDone', [new FnArg(unlistenCallbackId, null)]);
         };
+    }
+    animate(element, startingStyles, keyframes, duration, delay, easing) {
+        // TODO
+        return null;
     }
 }
 export class NamedEventEmitter {

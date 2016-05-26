@@ -376,6 +376,9 @@ var __extends = (this && this.__extends) || function (d, b) {
     })();
     var DomAdapter = _angular_platformBrowser.__platform_browser_private__.DomAdapter;
     var setRootDomAdapter = _angular_platformBrowser.__platform_browser_private__.setRootDomAdapter;
+    /**
+     * @stable
+     */
     var BaseException = (function (_super) {
         __extends(BaseException, _super);
         function BaseException(message) {
@@ -946,6 +949,7 @@ var __extends = (this && this.__extends) || function (d, b) {
         Parse5DomAdapter.prototype.setGlobalVar = function (path, value) { setValueOnPath(_global, path, value); };
         Parse5DomAdapter.prototype.requestAnimationFrame = function (callback) { return setTimeout(callback, 0); };
         Parse5DomAdapter.prototype.cancelAnimationFrame = function (id) { clearTimeout(id); };
+        Parse5DomAdapter.prototype.supportsWebAnimation = function () { return true; };
         Parse5DomAdapter.prototype.performanceNow = function () { return DateWrapper.toMillis(DateWrapper.now()); };
         Parse5DomAdapter.prototype.getAnimationPrefix = function () { return ''; };
         Parse5DomAdapter.prototype.getTransitionEnd = function () { return 'transitionend'; };

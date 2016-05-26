@@ -808,6 +808,7 @@
             var platformRef = _angular_platformBrowser.browserPlatform();
             var applicationRef = _angular_core.ReflectiveInjector.resolveAndCreate([
                 _angular_platformBrowser.BROWSER_APP_PROVIDERS,
+                _angular_platformBrowser.BROWSER_APP_COMPILER_PROVIDERS,
                 _angular_core.provide(NG1_INJECTOR, { useFactory: function () { return ng1Injector; } }),
                 _angular_core.provide(NG1_COMPILE, { useFactory: function () { return ng1Injector.get(NG1_COMPILE); } }),
                 this.providers
