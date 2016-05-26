@@ -9,8 +9,7 @@ export { AfterContentInit, AfterContentChecked, AfterViewInit, AfterViewChecked,
 import { QueryMetadata, ContentChildrenMetadata, ViewChildrenMetadata, AttributeMetadata } from './metadata/di';
 import { ComponentMetadata, DirectiveMetadata } from './metadata/directives';
 import { ViewMetadata, ViewEncapsulation } from './metadata/view';
-import { AnimationEntryMetadata } from './animation/metadata';
-import { ChangeDetectionStrategy } from '../src/change_detection/change_detection';
+import { ChangeDetectionStrategy } from './change_detection/change_detection';
 import { TypeDecorator } from './util/decorators';
 import { Type } from '../src/facade/lang';
 /**
@@ -37,7 +36,6 @@ export interface ComponentDecorator extends TypeDecorator {
         renderer?: string;
         styles?: string[];
         styleUrls?: string[];
-        animations?: AnimationEntryMetadata[];
     }): ViewDecorator;
 }
 /**
@@ -57,7 +55,6 @@ export interface ViewDecorator extends TypeDecorator {
         renderer?: string;
         styles?: string[];
         styleUrls?: string[];
-        animations?: AnimationEntryMetadata[];
     }): ViewDecorator;
 }
 /**
@@ -180,7 +177,6 @@ export interface ComponentMetadataFactory {
         template?: string;
         styleUrls?: string[];
         styles?: string[];
-        animations?: AnimationEntryMetadata[];
         directives?: Array<Type | any[]>;
         pipes?: Array<Type | any[]>;
         encapsulation?: ViewEncapsulation;
@@ -208,7 +204,6 @@ export interface ComponentMetadataFactory {
         template?: string;
         styleUrls?: string[];
         styles?: string[];
-        animations?: AnimationEntryMetadata[];
         directives?: Array<Type | any[]>;
         pipes?: Array<Type | any[]>;
         encapsulation?: ViewEncapsulation;
@@ -265,7 +260,6 @@ export interface ViewMetadataFactory {
         encapsulation?: ViewEncapsulation;
         styles?: string[];
         styleUrls?: string[];
-        animations?: AnimationEntryMetadata[];
     }): ViewDecorator;
     new (obj: {
         templateUrl?: string;
@@ -275,7 +269,6 @@ export interface ViewMetadataFactory {
         encapsulation?: ViewEncapsulation;
         styles?: string[];
         styleUrls?: string[];
-        animations?: AnimationEntryMetadata[];
     }): ViewMetadata;
 }
 /**
@@ -1333,8 +1326,8 @@ export declare var Output: OutputMetadataFactory;
  * @Directive({selector: '[ngModel]'})
  * class NgModelStatus {
  *   constructor(public control:NgModel) {}
- *   @HostBinding('[class.valid]') get valid { return this.control.valid; }
- *   @HostBinding('[class.invalid]') get invalid { return this.control.invalid; }
+ *   @HostBinding('class.valid') get valid() { return this.control.valid; }
+ *   @HostBinding('class.invalid') get invalid() { return this.control.invalid; }
  * }
  *
  * @Component({

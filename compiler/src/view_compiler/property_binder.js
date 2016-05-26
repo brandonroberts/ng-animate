@@ -9,7 +9,6 @@ var template_ast_1 = require('../template_ast');
 var util_1 = require('../util');
 var expression_converter_1 = require('./expression_converter');
 var compile_binding_1 = require('./compile_binding');
-var core_1 = require('@angular/core');
 function createBindFieldExpr(exprIndex) {
     return o.THIS_EXPR.prop("_expr_" + exprIndex);
 }
@@ -60,60 +59,35 @@ function bindAndWriteToRenderer(boundProps, context, compileElement) {
         var fieldExpr = createBindFieldExpr(bindingIndex);
         var currValExpr = createCurrValueExpr(bindingIndex);
         var renderMethod;
-        var oldRenderValue = sanitizedValue(boundProp, fieldExpr);
         var renderValue = sanitizedValue(boundProp, currValExpr);
         var updateStmts = [];
         switch (boundProp.type) {
             case template_ast_1.PropertyBindingType.Property:
+                renderMethod = 'setElementProperty';
                 if (view.genConfig.logBindingUpdate) {
-                    updateStmts.push(logBindingUpdateStmt(renderNode, boundProp.name, renderValue));
+                    updateStmts.push(logBindingUpdateStmt(renderNode, boundProp.name, currValExpr));
                 }
-                updateStmts.push(o.THIS_EXPR.prop('renderer')
-                    .callMethod('setElementProperty', [renderNode, o.literal(boundProp.name), renderValue])
-                    .toStmt());
                 break;
             case template_ast_1.PropertyBindingType.Attribute:
-                renderValue = renderValue.isBlank().conditional(o.NULL_EXPR, renderValue.callMethod('toString', []));
-                updateStmts.push(o.THIS_EXPR.prop('renderer')
-                    .callMethod('setElementAttribute', [renderNode, o.literal(boundProp.name), renderValue])
-                    .toStmt());
+                renderMethod = 'setElementAttribute';
+                renderValue =
+                    renderValue.isBlank().conditional(o.NULL_EXPR, renderValue.callMethod('toString', []));
                 break;
             case template_ast_1.PropertyBindingType.Class:
-                updateStmts.push(o.THIS_EXPR.prop('renderer')
-                    .callMethod('setElementClass', [renderNode, o.literal(boundProp.name), renderValue])
-                    .toStmt());
+                renderMethod = 'setElementClass';
                 break;
             case template_ast_1.PropertyBindingType.Style:
+                renderMethod = 'setElementStyle';
                 var strValue = renderValue.callMethod('toString', []);
                 if (lang_1.isPresent(boundProp.unit)) {
                     strValue = strValue.plus(o.literal(boundProp.unit));
                 }
                 renderValue = renderValue.isBlank().conditional(o.NULL_EXPR, strValue);
-                updateStmts.push(o.THIS_EXPR.prop('renderer')
-                    .callMethod('setElementStyle', [renderNode, o.literal(boundProp.name), renderValue])
-                    .toStmt());
-                break;
-            case template_ast_1.PropertyBindingType.Animation:
-                var animationName = boundProp.name;
-                var animation = view.componentView.animations.get(animationName);
-                if (!lang_1.isPresent(animation)) {
-                    throw new core_1.BaseException("Internal Error: couldn't find an animation entry for " + boundProp.name);
-                }
-                var PLAYER_VAR = o.variable('playerResult');
-                updateStmts.push(PLAYER_VAR.set(animation.fnVariable.callFn([
-                    o.THIS_EXPR,
-                    renderNode,
-                    oldRenderValue,
-                    renderValue
-                ])).toDeclStmt());
-                view.detachMethod.addStmt(PLAYER_VAR.set(animation.fnVariable.callFn([
-                    o.THIS_EXPR,
-                    renderNode,
-                    oldRenderValue,
-                    o.importExpr(identifiers_1.Identifiers.uninitialized)
-                ])).toDeclStmt());
                 break;
         }
+        updateStmts.push(o.THIS_EXPR.prop('renderer')
+            .callMethod(renderMethod, [renderNode, o.literal(boundProp.name), renderValue])
+            .toStmt());
         bind(view, currValExpr, fieldExpr, boundProp.value, context, updateStmts, view.detectChangesRenderPropertiesMethod);
     });
 }

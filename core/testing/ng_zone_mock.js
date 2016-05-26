@@ -12,22 +12,15 @@ var MockNgZone = (function (_super) {
         _super.call(this, { enableLongStackTrace: false });
         /** @internal */
         this._mockOnStable = new async_1.EventEmitter(false);
-        this._mockOnMicrotaskEmpty = new async_1.EventEmitter(false);
     }
     Object.defineProperty(MockNgZone.prototype, "onStable", {
         get: function () { return this._mockOnStable; },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(MockNgZone.prototype, "onMicrotaskEmpty", {
-        get: function () { return this._mockOnMicrotaskEmpty; },
-        enumerable: true,
-        configurable: true
-    });
     MockNgZone.prototype.run = function (fn) { return fn(); };
     MockNgZone.prototype.runOutsideAngular = function (fn) { return fn(); };
     MockNgZone.prototype.simulateZoneExit = function () { async_1.ObservableWrapper.callNext(this.onStable, null); };
-    MockNgZone.prototype.simulateMicrotaskEmpty = function () { async_1.ObservableWrapper.callNext(this.onMicrotaskEmpty, null); };
     MockNgZone.decorators = [
         { type: index_1.Injectable },
     ];

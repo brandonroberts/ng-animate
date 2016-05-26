@@ -1,5 +1,4 @@
 import { Type } from '../../src/facade/lang';
-import { AnimationEntryMetadata } from '../animation/metadata';
 /**
  * Defines template and style encapsulation options available for Component's {@link View}.
  *
@@ -112,8 +111,7 @@ export declare class ViewMetadata {
      * otherwise {@link ViewEncapsulation#None `ViewEncapsulation.None`}.
      */
     encapsulation: ViewEncapsulation;
-    animations: AnimationEntryMetadata[];
-    constructor({templateUrl, template, directives, pipes, encapsulation, styles, styleUrls, animations}?: {
+    constructor({templateUrl, template, directives, pipes, encapsulation, styles, styleUrls}?: {
         templateUrl?: string;
         template?: string;
         directives?: Array<Type | any[]>;
@@ -121,6 +119,5 @@ export declare class ViewMetadata {
         encapsulation?: ViewEncapsulation;
         styles?: string[];
         styleUrls?: string[];
-        animations?: AnimationEntryMetadata[];
     });
 }

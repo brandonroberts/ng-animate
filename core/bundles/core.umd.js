@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v2.0.0-rc.1
+ * @license AngularJS v$$ANGULAR_VERSION$$
  * (c) 2010-2016 Google, Inc. https://angular.io/
  * License: MIT
  */
@@ -30,6 +30,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function scheduleMicroTask(fn) {
         Zone.current.scheduleMicroTask('scheduleMicrotask', fn);
     }
+    var IS_DART = false;
     // Need to declare a new variable for global here since TypeScript
     // exports the original value of the symbol.
     var global$1 = globalScope;
@@ -176,58 +177,6 @@ var __extends = (this && this.__extends) || function (d, b) {
             }
         };
         return StringWrapper;
-    }());
-    var NumberParseError = (function (_super) {
-        __extends(NumberParseError, _super);
-        function NumberParseError(message) {
-            _super.call(this);
-            this.message = message;
-        }
-        NumberParseError.prototype.toString = function () { return this.message; };
-        return NumberParseError;
-    }(Error));
-    var NumberWrapper = (function () {
-        function NumberWrapper() {
-        }
-        NumberWrapper.toFixed = function (n, fractionDigits) { return n.toFixed(fractionDigits); };
-        NumberWrapper.equal = function (a, b) { return a === b; };
-        NumberWrapper.parseIntAutoRadix = function (text) {
-            var result = parseInt(text);
-            if (isNaN(result)) {
-                throw new NumberParseError("Invalid integer literal when parsing " + text);
-            }
-            return result;
-        };
-        NumberWrapper.parseInt = function (text, radix) {
-            if (radix == 10) {
-                if (/^(\-|\+)?[0-9]+$/.test(text)) {
-                    return parseInt(text, radix);
-                }
-            }
-            else if (radix == 16) {
-                if (/^(\-|\+)?[0-9ABCDEFabcdef]+$/.test(text)) {
-                    return parseInt(text, radix);
-                }
-            }
-            else {
-                var result = parseInt(text, radix);
-                if (!isNaN(result)) {
-                    return result;
-                }
-            }
-            throw new NumberParseError("Invalid integer literal when parsing " + text + " in base " +
-                radix);
-        };
-        // TODO: NaN is a valid literal but is returned by parseFloat to indicate an error.
-        NumberWrapper.parseFloat = function (text) { return parseFloat(text); };
-        Object.defineProperty(NumberWrapper, "NaN", {
-            get: function () { return NaN; },
-            enumerable: true,
-            configurable: true
-        });
-        NumberWrapper.isNaN = function (value) { return isNaN(value); };
-        NumberWrapper.isInteger = function (value) { return Number.isInteger(value); };
-        return NumberWrapper;
     }());
     // JS has NaN !== NaN
     function looseIdentical(a, b) {
@@ -1699,7 +1648,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     var ComponentMetadata = (function (_super) {
         __extends(ComponentMetadata, _super);
         function ComponentMetadata(_a) {
-            var _b = _a === void 0 ? {} : _a, selector = _b.selector, inputs = _b.inputs, outputs = _b.outputs, properties = _b.properties, events = _b.events, host = _b.host, exportAs = _b.exportAs, moduleId = _b.moduleId, bindings = _b.bindings, providers = _b.providers, viewBindings = _b.viewBindings, viewProviders = _b.viewProviders, _c = _b.changeDetection, changeDetection = _c === void 0 ? exports.ChangeDetectionStrategy.Default : _c, queries = _b.queries, templateUrl = _b.templateUrl, template = _b.template, styleUrls = _b.styleUrls, styles = _b.styles, animations = _b.animations, directives = _b.directives, pipes = _b.pipes, encapsulation = _b.encapsulation;
+            var _b = _a === void 0 ? {} : _a, selector = _b.selector, inputs = _b.inputs, outputs = _b.outputs, properties = _b.properties, events = _b.events, host = _b.host, exportAs = _b.exportAs, moduleId = _b.moduleId, bindings = _b.bindings, providers = _b.providers, viewBindings = _b.viewBindings, viewProviders = _b.viewProviders, _c = _b.changeDetection, changeDetection = _c === void 0 ? exports.ChangeDetectionStrategy.Default : _c, queries = _b.queries, templateUrl = _b.templateUrl, template = _b.template, styleUrls = _b.styleUrls, styles = _b.styles, directives = _b.directives, pipes = _b.pipes, encapsulation = _b.encapsulation;
             _super.call(this, {
                 selector: selector,
                 inputs: inputs,
@@ -1723,7 +1672,6 @@ var __extends = (this && this.__extends) || function (d, b) {
             this.pipes = pipes;
             this.encapsulation = encapsulation;
             this.moduleId = moduleId;
-            this.animations = animations;
         }
         Object.defineProperty(ComponentMetadata.prototype, "viewProviders", {
             /**
@@ -2050,7 +1998,7 @@ var __extends = (this && this.__extends) || function (d, b) {
      */
     var ViewMetadata = (function () {
         function ViewMetadata(_a) {
-            var _b = _a === void 0 ? {} : _a, templateUrl = _b.templateUrl, template = _b.template, directives = _b.directives, pipes = _b.pipes, encapsulation = _b.encapsulation, styles = _b.styles, styleUrls = _b.styleUrls, animations = _b.animations;
+            var _b = _a === void 0 ? {} : _a, templateUrl = _b.templateUrl, template = _b.template, directives = _b.directives, pipes = _b.pipes, encapsulation = _b.encapsulation, styles = _b.styles, styleUrls = _b.styleUrls;
             this.templateUrl = templateUrl;
             this.template = template;
             this.styleUrls = styleUrls;
@@ -2058,7 +2006,6 @@ var __extends = (this && this.__extends) || function (d, b) {
             this.directives = directives;
             this.pipes = pipes;
             this.encapsulation = encapsulation;
-            this.animations = animations;
         }
         return ViewMetadata;
     }());
@@ -2073,9 +2020,6 @@ var __extends = (this && this.__extends) || function (d, b) {
         LifecycleHooks[LifecycleHooks["AfterViewInit"] = 6] = "AfterViewInit";
         LifecycleHooks[LifecycleHooks["AfterViewChecked"] = 7] = "AfterViewChecked";
     })(LifecycleHooks || (LifecycleHooks = {}));
-    /**
-     * @internal
-     */
     var LIFECYCLE_HOOKS_VALUES = [
         LifecycleHooks.OnInit,
         LifecycleHooks.OnDestroy,
@@ -3716,8 +3660,8 @@ var __extends = (this && this.__extends) || function (d, b) {
      * @Directive({selector: '[ngModel]'})
      * class NgModelStatus {
      *   constructor(public control:NgModel) {}
-     *   @HostBinding('[class.valid]') get valid { return this.control.valid; }
-     *   @HostBinding('[class.invalid]') get invalid { return this.control.invalid; }
+     *   @HostBinding('class.valid') get valid() { return this.control.valid; }
+     *   @HostBinding('class.invalid') get invalid() { return this.control.invalid; }
      * }
      *
      * @Component({
@@ -6567,7 +6511,7 @@ var __extends = (this && this.__extends) || function (d, b) {
         function EventEmitter(isAsync) {
             if (isAsync === void 0) { isAsync = true; }
             _super.call(this);
-            this._isAsync = isAsync;
+            this.__isAsync = isAsync;
         }
         EventEmitter.prototype.emit = function (value) { _super.prototype.next.call(this, value); };
         /**
@@ -6579,27 +6523,27 @@ var __extends = (this && this.__extends) || function (d, b) {
             var errorFn = function (err) { return null; };
             var completeFn = function () { return null; };
             if (generatorOrNext && typeof generatorOrNext === 'object') {
-                schedulerFn = this._isAsync ? function (value) { setTimeout(function () { return generatorOrNext.next(value); }); } :
+                schedulerFn = this.__isAsync ? function (value) { setTimeout(function () { return generatorOrNext.next(value); }); } :
                     function (value) { generatorOrNext.next(value); };
                 if (generatorOrNext.error) {
-                    errorFn = this._isAsync ? function (err) { setTimeout(function () { return generatorOrNext.error(err); }); } :
+                    errorFn = this.__isAsync ? function (err) { setTimeout(function () { return generatorOrNext.error(err); }); } :
                         function (err) { generatorOrNext.error(err); };
                 }
                 if (generatorOrNext.complete) {
-                    completeFn = this._isAsync ? function () { setTimeout(function () { return generatorOrNext.complete(); }); } :
+                    completeFn = this.__isAsync ? function () { setTimeout(function () { return generatorOrNext.complete(); }); } :
                         function () { generatorOrNext.complete(); };
                 }
             }
             else {
-                schedulerFn = this._isAsync ? function (value) { setTimeout(function () { return generatorOrNext(value); }); } :
+                schedulerFn = this.__isAsync ? function (value) { setTimeout(function () { return generatorOrNext(value); }); } :
                     function (value) { generatorOrNext(value); };
                 if (error) {
                     errorFn =
-                        this._isAsync ? function (err) { setTimeout(function () { return error(err); }); } : function (err) { error(err); };
+                        this.__isAsync ? function (err) { setTimeout(function () { return error(err); }); } : function (err) { error(err); };
                 }
                 if (complete) {
                     completeFn =
-                        this._isAsync ? function () { setTimeout(function () { return complete(); }); } : function () { complete(); };
+                        this.__isAsync ? function () { setTimeout(function () { return complete(); }); } : function () { complete(); };
                 }
             }
             return _super.prototype.subscribe.call(this, schedulerFn, errorFn, completeFn);
@@ -6868,6 +6812,14 @@ var __extends = (this && this.__extends) || function (d, b) {
              * Notify that an error has been delivered.
              */
             get: function () { return this._onErrorEvents; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(NgZone.prototype, "isStable", {
+            /**
+             * Whether there are no outstanding microtasks or microtasks.
+             */
+            get: function () { return this._isStable; },
             enumerable: true,
             configurable: true
         });
@@ -7456,7 +7408,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             if (view.type === ViewType.COMPONENT) {
                 throw new BaseException("Component views can't be moved!");
             }
-            view.detach();
+            view.renderer.detachView(view.flatRootNodes);
             view.removeFromContentChildren(this);
             return view;
         };
@@ -9582,7 +9534,9 @@ var __extends = (this && this.__extends) || function (d, b) {
                 _this._loadComponent(compRef);
                 var c = _this._injector.get(Console);
                 if (assertionsEnabled()) {
-                    c.log("Angular 2 is running in the development mode. Call enableProdMode() to enable the production mode.");
+                    var prodDescription = IS_DART ? "Production mode is disabled in Dart." :
+                        "Call enableProdMode() to enable the production mode.";
+                    c.log("Angular 2 is running in the development mode. " + prodDescription);
                 }
                 return compRef;
             });
@@ -10382,58 +10336,6 @@ var __extends = (this && this.__extends) || function (d, b) {
         };
         return ElementInjector;
     }(Injector));
-    var Math$1 = global$1.Math;
-    var AnimationGroupPlayer = (function () {
-        function AnimationGroupPlayer(_players) {
-            var _this = this;
-            this._players = _players;
-            this._subscriptions = [];
-            this.parentPlayer = null;
-            var count = 0;
-            var total = this._players.length;
-            if (total == 0) {
-                scheduleMicroTask(function () { return _this._onFinish(); });
-            }
-            else {
-                this._players.forEach(function (player) {
-                    player.parentPlayer = _this;
-                    player.onDone(function () {
-                        if (++count >= total) {
-                            _this._onFinish();
-                        }
-                    });
-                });
-            }
-        }
-        AnimationGroupPlayer.prototype._onFinish = function () {
-            if (!isPresent(this.parentPlayer)) {
-                this.destroy();
-            }
-            this._subscriptions.forEach(function (subscription) { return subscription(); });
-            this._subscriptions = [];
-        };
-        AnimationGroupPlayer.prototype.onDone = function (fn) { this._subscriptions.push(fn); };
-        AnimationGroupPlayer.prototype.play = function () { this._players.forEach(function (player) { return player.play(); }); };
-        AnimationGroupPlayer.prototype.pause = function () { this._players.forEach(function (player) { return player.pause(); }); };
-        AnimationGroupPlayer.prototype.restart = function () { this._players.forEach(function (player) { return player.restart(); }); };
-        AnimationGroupPlayer.prototype.finish = function () { this._players.forEach(function (player) { return player.finish(); }); };
-        AnimationGroupPlayer.prototype.destroy = function () { this._players.forEach(function (player) { return player.destroy(); }); };
-        AnimationGroupPlayer.prototype.reset = function () { this._players.forEach(function (player) { return player.reset(); }); };
-        AnimationGroupPlayer.prototype.setPosition = function (p) {
-            this._players.forEach(function (player) {
-                player.setPosition(p);
-            });
-        };
-        AnimationGroupPlayer.prototype.getPosition = function () {
-            var min = 0;
-            this._players.forEach(function (player) {
-                var p = player.getPosition();
-                min = Math$1.min(p, min);
-            });
-            return min;
-        };
-        return AnimationGroupPlayer;
-    }());
     var _scope_check = wtfCreateScope("AppView#check(ascii id)");
     /**
      * Cost of making objects: http://jsperf.com/instantiate-size-of-object
@@ -10455,7 +10357,6 @@ var __extends = (this && this.__extends) || function (d, b) {
             // change detection will fail.
             this.cdState = ChangeDetectorState.NeverChecked;
             this.destroyed = false;
-            this.activeAnimations = [];
             this.ref = new ViewRef_(this);
             if (type === ViewType.COMPONENT || type === ViewType.HOST) {
                 this.renderer = viewUtils.renderComponent(componentType);
@@ -10464,13 +10365,6 @@ var __extends = (this && this.__extends) || function (d, b) {
                 this.renderer = declarationAppElement.parentView.renderer;
             }
         }
-        AppView.prototype.registerActiveAnimation = function (player) {
-            var _this = this;
-            this.activeAnimations.push(player);
-            player.onDone(function () {
-                ListWrapper.remove(_this.activeAnimations, player);
-            });
-        };
         AppView.prototype.create = function (context, givenProjectableNodes, rootSelectorOrNode) {
             this.context = context;
             var projectableNodes;
@@ -10560,7 +10454,6 @@ var __extends = (this && this.__extends) || function (d, b) {
             this.destroyed = true;
         };
         AppView.prototype.destroyLocal = function () {
-            var _this = this;
             var hostElement = this.type === ViewType.COMPONENT ? this.declarationAppElement.nativeElement : null;
             for (var i = 0; i < this.disposables.length; i++) {
                 this.disposables[i]();
@@ -10570,37 +10463,12 @@ var __extends = (this && this.__extends) || function (d, b) {
             }
             this.destroyInternal();
             this.dirtyParentQueriesInternal();
-            if (this.activeAnimations.length == 0) {
-                this.renderer.destroyView(hostElement, this.allNodes);
-            }
-            else {
-                var player = new AnimationGroupPlayer(this.activeAnimations);
-                player.onDone(function () {
-                    _this.renderer.destroyView(hostElement, _this.allNodes);
-                });
-            }
+            this.renderer.destroyView(hostElement, this.allNodes);
         };
         /**
          * Overwritten by implementations
          */
         AppView.prototype.destroyInternal = function () { };
-        /**
-         * Overwritten by implementations
-         */
-        AppView.prototype.detachInternal = function () { };
-        AppView.prototype.detach = function () {
-            var _this = this;
-            this.detachInternal();
-            if (this.activeAnimations.length == 0) {
-                this.renderer.detachView(this.flatRootNodes);
-            }
-            else {
-                var player = new AnimationGroupPlayer(this.activeAnimations);
-                player.onDone(function () {
-                    _this.renderer.detachView(_this.flatRootNodes);
-                });
-            }
-        };
         Object.defineProperty(AppView.prototype, "changeDetectorRef", {
             get: function () { return this.ref; },
             enumerable: true,
@@ -10710,16 +10578,6 @@ var __extends = (this && this.__extends) || function (d, b) {
             this._resetDebug();
             try {
                 return _super.prototype.injectorGet.call(this, token, nodeIndex, notFoundResult);
-            }
-            catch (e) {
-                this._rethrowWithContext(e, e.stack);
-                throw e;
-            }
-        };
-        DebugAppView.prototype.detach = function () {
-            this._resetDebug();
-            try {
-                _super.prototype.detach.call(this);
             }
             catch (e) {
                 this._rethrowWithContext(e, e.stack);
@@ -10902,9 +10760,6 @@ var __extends = (this && this.__extends) || function (d, b) {
         DebugDomRenderer.prototype.setElementClass = function (renderElement, className, isAdd) {
             this._delegate.setElementClass(renderElement, className, isAdd);
         };
-        DebugDomRenderer.prototype.setElementStyles = function (renderElement, styles) {
-            this._delegate.setElementStyles(renderElement, styles);
-        };
         DebugDomRenderer.prototype.setElementStyle = function (renderElement, styleName, styleValue) {
             this._delegate.setElementStyle(renderElement, styleName, styleValue);
         };
@@ -10912,459 +10767,8 @@ var __extends = (this && this.__extends) || function (d, b) {
             this._delegate.invokeElementMethod(renderElement, methodName, args);
         };
         DebugDomRenderer.prototype.setText = function (renderNode, text) { this._delegate.setText(renderNode, text); };
-        DebugDomRenderer.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing) {
-            return this._delegate.animate(element, startingStyles, keyframes, duration, delay, easing);
-        };
         return DebugDomRenderer;
     }());
-    var AnimationPlayer = (function () {
-        function AnimationPlayer() {
-        }
-        Object.defineProperty(AnimationPlayer.prototype, "parentPlayer", {
-            get: function () { throw new BaseException('NOT IMPLEMENTED: Base Class'); },
-            set: function (player) { throw new BaseException('NOT IMPLEMENTED: Base Class'); },
-            enumerable: true,
-            configurable: true
-        });
-        return AnimationPlayer;
-    }());
-    var NoOpAnimationPlayer = (function () {
-        function NoOpAnimationPlayer() {
-            var _this = this;
-            this._subscriptions = [];
-            this.parentPlayer = null;
-            scheduleMicroTask(function () {
-                _this._subscriptions.forEach(function (entry) { entry(); });
-                _this._subscriptions = [];
-            });
-        }
-        NoOpAnimationPlayer.prototype.onDone = function (fn) { this._subscriptions.push(fn); };
-        NoOpAnimationPlayer.prototype.play = function () { };
-        NoOpAnimationPlayer.prototype.pause = function () { };
-        NoOpAnimationPlayer.prototype.restart = function () { };
-        NoOpAnimationPlayer.prototype.finish = function () { };
-        NoOpAnimationPlayer.prototype.destroy = function () { };
-        NoOpAnimationPlayer.prototype.reset = function () { };
-        NoOpAnimationPlayer.prototype.setPosition = function (p) { };
-        NoOpAnimationPlayer.prototype.getPosition = function () { return 0; };
-        return NoOpAnimationPlayer;
-    }());
-    var AnimationDriver = (function () {
-        function AnimationDriver() {
-        }
-        return AnimationDriver;
-    }());
-    var NoOpAnimationDriver = (function (_super) {
-        __extends(NoOpAnimationDriver, _super);
-        function NoOpAnimationDriver() {
-            _super.apply(this, arguments);
-        }
-        NoOpAnimationDriver.prototype.computeStyle = function (element, prop) { return ''; };
-        NoOpAnimationDriver.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing) {
-            return new NoOpAnimationPlayer();
-        };
-        return NoOpAnimationDriver;
-    }(AnimationDriver));
-    var AnimationSequencePlayer = (function () {
-        function AnimationSequencePlayer(_players) {
-            var _this = this;
-            this._players = _players;
-            this._currentIndex = 0;
-            this._subscriptions = [];
-            this.parentPlayer = null;
-            this._players.forEach(function (player) {
-                player.parentPlayer = _this;
-            });
-            this._onNext(false);
-        }
-        AnimationSequencePlayer.prototype._onNext = function (start) {
-            var _this = this;
-            if (this._players.length == 0) {
-                this._activePlayer = new NoOpAnimationPlayer();
-                scheduleMicroTask(function () { return _this._onFinish(); });
-            }
-            else if (this._currentIndex >= this._players.length) {
-                this._activePlayer = new NoOpAnimationPlayer();
-                this._onFinish();
-            }
-            else {
-                var player = this._players[this._currentIndex++];
-                player.onDone(function () { return _this._onNext(true); });
-                this._activePlayer = player;
-                if (start) {
-                    player.play();
-                }
-            }
-        };
-        AnimationSequencePlayer.prototype._onFinish = function () {
-            if (!isPresent(this.parentPlayer)) {
-                this.destroy();
-            }
-            this._subscriptions.forEach(function (subscription) { return subscription(); });
-            this._subscriptions = [];
-        };
-        AnimationSequencePlayer.prototype.onDone = function (fn) { this._subscriptions.push(fn); };
-        AnimationSequencePlayer.prototype.play = function () { this._activePlayer.play(); };
-        AnimationSequencePlayer.prototype.pause = function () { this._activePlayer.pause(); };
-        AnimationSequencePlayer.prototype.restart = function () {
-            if (this._players.length > 0) {
-                this.reset();
-                this._players[0].restart();
-            }
-        };
-        AnimationSequencePlayer.prototype.reset = function () { this._players.forEach(function (player) { return player.reset(); }); };
-        AnimationSequencePlayer.prototype.finish = function () { this._players.forEach(function (player) { return player.finish(); }); };
-        AnimationSequencePlayer.prototype.destroy = function () { this._players.forEach(function (player) { return player.destroy(); }); };
-        AnimationSequencePlayer.prototype.setPosition = function (p) {
-            this._players[0].setPosition(p);
-        };
-        AnimationSequencePlayer.prototype.getPosition = function () {
-            return this._players[0].getPosition();
-        };
-        return AnimationSequencePlayer;
-    }());
-    var AnimationKeyframe = (function () {
-        function AnimationKeyframe(offset, styles) {
-            this.offset = offset;
-            this.styles = styles;
-        }
-        return AnimationKeyframe;
-    }());
-    exports.AUTO_STYLE = "*";
-    var AnimationEntryMetadata = (function () {
-        function AnimationEntryMetadata(name, definitions) {
-            this.name = name;
-            this.definitions = definitions;
-        }
-        return AnimationEntryMetadata;
-    }());
-    var AnimationStateMetadata = (function () {
-        function AnimationStateMetadata() {
-        }
-        return AnimationStateMetadata;
-    }());
-    var AnimationStateDeclarationMetadata = (function (_super) {
-        __extends(AnimationStateDeclarationMetadata, _super);
-        function AnimationStateDeclarationMetadata(stateName, styles) {
-            _super.call(this);
-            this.stateName = stateName;
-            this.styles = styles;
-        }
-        return AnimationStateDeclarationMetadata;
-    }(AnimationStateMetadata));
-    var AnimationStateTransitionMetadata = (function (_super) {
-        __extends(AnimationStateTransitionMetadata, _super);
-        function AnimationStateTransitionMetadata(stateChangeExpr, animation) {
-            _super.call(this);
-            this.stateChangeExpr = stateChangeExpr;
-            this.animation = animation;
-        }
-        return AnimationStateTransitionMetadata;
-    }(AnimationStateMetadata));
-    var AnimationMetadata = (function () {
-        function AnimationMetadata() {
-        }
-        return AnimationMetadata;
-    }());
-    var AnimationKeyframesSequenceMetadata = (function (_super) {
-        __extends(AnimationKeyframesSequenceMetadata, _super);
-        function AnimationKeyframesSequenceMetadata(steps) {
-            _super.call(this);
-            this.steps = steps;
-        }
-        return AnimationKeyframesSequenceMetadata;
-    }(AnimationMetadata));
-    var AnimationStyleMetadata = (function (_super) {
-        __extends(AnimationStyleMetadata, _super);
-        function AnimationStyleMetadata(styles, offset) {
-            if (offset === void 0) { offset = null; }
-            _super.call(this);
-            this.styles = styles;
-            this.offset = offset;
-        }
-        return AnimationStyleMetadata;
-    }(AnimationMetadata));
-    var AnimationAnimateMetadata = (function (_super) {
-        __extends(AnimationAnimateMetadata, _super);
-        function AnimationAnimateMetadata(timings, styles) {
-            _super.call(this);
-            this.timings = timings;
-            this.styles = styles;
-        }
-        return AnimationAnimateMetadata;
-    }(AnimationMetadata));
-    var AnimationWithStepsMetadata = (function (_super) {
-        __extends(AnimationWithStepsMetadata, _super);
-        function AnimationWithStepsMetadata() {
-            _super.call(this);
-        }
-        Object.defineProperty(AnimationWithStepsMetadata.prototype, "steps", {
-            get: function () { throw new BaseException('NOT IMPLEMENTED: Base Class'); },
-            enumerable: true,
-            configurable: true
-        });
-        return AnimationWithStepsMetadata;
-    }(AnimationMetadata));
-    var AnimationSequenceMetadata = (function (_super) {
-        __extends(AnimationSequenceMetadata, _super);
-        function AnimationSequenceMetadata(_steps) {
-            _super.call(this);
-            this._steps = _steps;
-        }
-        Object.defineProperty(AnimationSequenceMetadata.prototype, "steps", {
-            get: function () { return this._steps; },
-            enumerable: true,
-            configurable: true
-        });
-        return AnimationSequenceMetadata;
-    }(AnimationWithStepsMetadata));
-    var AnimationGroupMetadata = (function (_super) {
-        __extends(AnimationGroupMetadata, _super);
-        function AnimationGroupMetadata(_steps) {
-            _super.call(this);
-            this._steps = _steps;
-        }
-        Object.defineProperty(AnimationGroupMetadata.prototype, "steps", {
-            get: function () { return this._steps; },
-            enumerable: true,
-            configurable: true
-        });
-        return AnimationGroupMetadata;
-    }(AnimationWithStepsMetadata));
-    function animate(timing, styles) {
-        if (styles === void 0) { styles = null; }
-        var stylesEntry = styles;
-        if (!isPresent(stylesEntry)) {
-            var EMPTY_STYLE = {};
-            stylesEntry = new AnimationStyleMetadata([EMPTY_STYLE], 1);
-        }
-        return new AnimationAnimateMetadata(timing, stylesEntry);
-    }
-    function group(steps) {
-        return new AnimationGroupMetadata(steps);
-    }
-    function sequence(steps) {
-        return new AnimationSequenceMetadata(steps);
-    }
-    function style(tokens) {
-        var input;
-        var offset = null;
-        if (isString(tokens)) {
-            input = [tokens];
-        }
-        else {
-            if (isArray(tokens)) {
-                input = tokens;
-            }
-            else {
-                input = [tokens];
-            }
-            input.forEach(function (entry) {
-                var entryOffset = entry['offset'];
-                if (isPresent(entryOffset)) {
-                    offset = offset == null ? NumberWrapper.parseFloat(entryOffset) : offset;
-                }
-            });
-        }
-        return new AnimationStyleMetadata(input, offset);
-    }
-    function state(stateName, styles) {
-        return new AnimationStateDeclarationMetadata(stateName, styles);
-    }
-    function keyframes(steps) {
-        var stepData = isArray(steps)
-            ? steps
-            : [steps];
-        return new AnimationKeyframesSequenceMetadata(stepData);
-    }
-    function transition(stateChangeExpr, animationData) {
-        var animation = isArray(animationData)
-            ? new AnimationSequenceMetadata(animationData)
-            : animationData;
-        return new AnimationStateTransitionMetadata(stateChangeExpr, animation);
-    }
-    function animation(name, animation) {
-        var entry = isArray(animation)
-            ? animation
-            : [animation];
-        return new AnimationEntryMetadata(name, entry);
-    }
-    var FILL_STYLE_FLAG = 'true'; // TODO (matsko): change to boolean
-    var ANY_STATE = '*';
-    var EMPTY_STATE = 'void';
-    var AnimationStyleUtil = (function () {
-        function AnimationStyleUtil() {
-        }
-        AnimationStyleUtil.balanceStyles = function (previousStyles, newStyles, nullValue) {
-            if (nullValue === void 0) { nullValue = null; }
-            var finalStyles = {};
-            StringMapWrapper.forEach(newStyles, function (value, prop) {
-                finalStyles[prop] = value;
-            });
-            StringMapWrapper.forEach(previousStyles, function (value, prop) {
-                if (!isPresent(finalStyles[prop])) {
-                    finalStyles[prop] = nullValue;
-                }
-            });
-            return finalStyles;
-        };
-        AnimationStyleUtil.balanceKeyframes = function (collectedStyles, finalStateStyles, keyframes) {
-            var limit = keyframes.length - 1;
-            var firstKeyframe = keyframes[0];
-            // phase 1: copy all the styles from the first keyframe into the lookup map
-            var flatenedFirstKeyframeStyles = {};
-            var keyframeCollectedStyles = {};
-            var extraFirstKeyframeStyles = {};
-            var hasExtraFirstStyles = false;
-            StringMapWrapper.forEach(collectedStyles, function (value, prop) {
-                keyframeCollectedStyles[prop] = value;
-                flatenedFirstKeyframeStyles[prop] = value;
-                extraFirstKeyframeStyles[prop] = value;
-                hasExtraFirstStyles = true;
-            });
-            firstKeyframe.styles.styles.forEach(function (entry) {
-                StringMapWrapper.forEach(entry, function (value, prop) {
-                    keyframeCollectedStyles[prop] = value;
-                    flatenedFirstKeyframeStyles[prop] = value;
-                });
-            });
-            // phase 2: normalize the final keyframe
-            var finalKeyframe = keyframes[limit];
-            finalKeyframe.styles.styles.push(finalStateStyles);
-            var flatenedFinalKeyframeStyles = _flattenStyles(finalKeyframe.styles.styles);
-            var extraFinalKeyframeStyles = {};
-            var hasExtraFinalStyles = false;
-            StringMapWrapper.forEach(keyframeCollectedStyles, function (value, prop) {
-                if (!isPresent(flatenedFinalKeyframeStyles[prop])) {
-                    extraFinalKeyframeStyles[prop] = exports.AUTO_STYLE;
-                    hasExtraFinalStyles = true;
-                }
-            });
-            if (hasExtraFinalStyles) {
-                finalKeyframe.styles.styles.push(extraFinalKeyframeStyles);
-            }
-            StringMapWrapper.forEach(flatenedFinalKeyframeStyles, function (value, prop) {
-                if (!isPresent(flatenedFirstKeyframeStyles[prop])) {
-                    extraFirstKeyframeStyles[prop] = exports.AUTO_STYLE;
-                    hasExtraFirstStyles = true;
-                }
-            });
-            if (hasExtraFirstStyles) {
-                firstKeyframe.styles.styles.push(extraFirstKeyframeStyles);
-            }
-            return keyframes;
-        };
-        AnimationStyleUtil.clearStyles = function (styles) {
-            var finalStyles = {};
-            StringMapWrapper.keys(styles).forEach(function (key) {
-                finalStyles[key] = null;
-            });
-            return finalStyles;
-        };
-        AnimationStyleUtil.collectAndResolveStyles = function (collection, newStyles) {
-            newStyles.forEach(function (entry) {
-                StringMapWrapper.forEach(entry, function (value, prop) {
-                    if (value == FILL_STYLE_FLAG) {
-                        value = collection[prop];
-                        if (!isPresent(value)) {
-                            value = exports.AUTO_STYLE;
-                        }
-                        entry[prop] = value;
-                    }
-                    collection[prop] = value;
-                });
-            });
-            return newStyles;
-        };
-        return AnimationStyleUtil;
-    }());
-    function _flattenStyles(styles) {
-        var finalStyles = {};
-        styles.forEach(function (entry) {
-            StringMapWrapper.forEach(entry, function (value, prop) {
-                finalStyles[prop] = value;
-            });
-        });
-        return finalStyles;
-    }
-    //
-    var AnimationStyles = (function () {
-        function AnimationStyles(styles) {
-            this.styles = styles;
-        }
-        return AnimationStyles;
-    }());
-    var MockAnimationPlayer = (function () {
-        function MockAnimationPlayer() {
-            this._subscriptions = [];
-            this._finished = false;
-            this._destroyed = false;
-            this.parentPlayer = null;
-            this.log = [];
-        }
-        MockAnimationPlayer.prototype._onfinish = function () {
-            if (!this._finished) {
-                this._finished = true;
-                this.log.push('finish');
-                this._subscriptions.forEach(function (entry) { entry(); });
-                this._subscriptions = [];
-                if (!isPresent(this.parentPlayer)) {
-                    this.destroy();
-                }
-            }
-        };
-        MockAnimationPlayer.prototype.onDone = function (fn) { this._subscriptions.push(fn); };
-        MockAnimationPlayer.prototype.play = function () { this.log.push('play'); };
-        MockAnimationPlayer.prototype.pause = function () { this.log.push('pause'); };
-        MockAnimationPlayer.prototype.restart = function () { this.log.push('restart'); };
-        MockAnimationPlayer.prototype.finish = function () { this._onfinish(); };
-        MockAnimationPlayer.prototype.reset = function () { this.log.push('reset'); };
-        MockAnimationPlayer.prototype.destroy = function () {
-            if (!this._destroyed) {
-                this._destroyed = true;
-                this.finish();
-                this.log.push('destroy');
-            }
-        };
-        MockAnimationPlayer.prototype.setPosition = function (p) { };
-        MockAnimationPlayer.prototype.getPosition = function () { return 0; };
-        return MockAnimationPlayer;
-    }());
-    var MockAnimationDriver = (function (_super) {
-        __extends(MockAnimationDriver, _super);
-        function MockAnimationDriver() {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i - 0] = arguments[_i];
-            }
-            _super.apply(this, args);
-            this.log = [];
-        }
-        MockAnimationDriver.prototype.computeStyle = function (element, prop) { return ''; };
-        MockAnimationDriver.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing) {
-            var player = new MockAnimationPlayer();
-            this.log.push({
-                'element': element,
-                'startingStyles': _serializeStyles(startingStyles),
-                'keyframes': keyframes,
-                'keyframeLookup': _serializeKeyframes(keyframes),
-                'duration': duration,
-                'delay': delay,
-                'easing': easing,
-                'player': player
-            });
-            return player;
-        };
-        return MockAnimationDriver;
-    }(AnimationDriver));
-    function _serializeKeyframes(keyframes) {
-        return keyframes.map(function (keyframe) { return [keyframe.offset, _serializeStyles(keyframe.styles)]; });
-    }
-    function _serializeStyles(styles) {
-        var flatStyles = {};
-        styles.styles.forEach(function (entry) { return StringMapWrapper.forEach(entry, function (val, prop) { flatStyles[prop] = val; }); });
-        return flatStyles;
-    }
     var __core_private__ = {
         isDefaultChangeDetectionStrategy: isDefaultChangeDetectionStrategy,
         ChangeDetectorState: ChangeDetectorState,
@@ -11413,20 +10817,6 @@ var __extends = (this && this.__extends) || function (d, b) {
         pureProxy10: pureProxy10,
         castByValue: castByValue,
         Console: Console,
-        NoOpAnimationPlayer: NoOpAnimationPlayer,
-        AnimationPlayer: AnimationPlayer,
-        NoOpAnimationDriver: NoOpAnimationDriver,
-        AnimationDriver: AnimationDriver,
-        AnimationSequencePlayer: AnimationSequencePlayer,
-        AnimationGroupPlayer: AnimationGroupPlayer,
-        AnimationKeyframe: AnimationKeyframe,
-        AnimationStyleUtil: AnimationStyleUtil,
-        AnimationStyles: AnimationStyles,
-        MockAnimationPlayer: MockAnimationPlayer,
-        MockAnimationDriver: MockAnimationDriver,
-        ANY_STATE: ANY_STATE,
-        EMPTY_STATE: EMPTY_STATE,
-        FILL_STYLE_FLAG: FILL_STYLE_FLAG
     };
     exports.createPlatform = createPlatform;
     exports.assertPlatform = assertPlatform;
@@ -11455,7 +10845,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     exports.ExceptionHandler = ExceptionHandler;
     exports.WrappedException = WrappedException;
     exports.BaseException = BaseException;
-    exports.AnimationPlayer = AnimationPlayer;
     exports.Component = Component;
     exports.Directive = Directive;
     exports.Attribute = Attribute;
@@ -11563,23 +10952,4 @@ var __extends = (this && this.__extends) || function (d, b) {
     exports.Reflector = Reflector;
     exports.ReflectionInfo = ReflectionInfo;
     exports.__core_private__ = __core_private__;
-    exports.AnimationEntryMetadata = AnimationEntryMetadata;
-    exports.AnimationStateMetadata = AnimationStateMetadata;
-    exports.AnimationStateDeclarationMetadata = AnimationStateDeclarationMetadata;
-    exports.AnimationStateTransitionMetadata = AnimationStateTransitionMetadata;
-    exports.AnimationMetadata = AnimationMetadata;
-    exports.AnimationKeyframesSequenceMetadata = AnimationKeyframesSequenceMetadata;
-    exports.AnimationStyleMetadata = AnimationStyleMetadata;
-    exports.AnimationAnimateMetadata = AnimationAnimateMetadata;
-    exports.AnimationWithStepsMetadata = AnimationWithStepsMetadata;
-    exports.AnimationSequenceMetadata = AnimationSequenceMetadata;
-    exports.AnimationGroupMetadata = AnimationGroupMetadata;
-    exports.animate = animate;
-    exports.group = group;
-    exports.sequence = sequence;
-    exports.style = style;
-    exports.state = state;
-    exports.keyframes = keyframes;
-    exports.transition = transition;
-    exports.animation = animation;
 }));

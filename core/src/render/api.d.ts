@@ -1,8 +1,5 @@
 import { ViewEncapsulation } from '../metadata/view';
 import { Injector } from '../di/injector';
-import { AnimationKeyframe } from '../../src/animation/animation_keyframe';
-import { AnimationPlayer } from '../../src/animation/animation_player';
-import { AnimationStyles } from '../../src/animation/animation_styles';
 export declare class RenderComponentType {
     id: string;
     templateUrl: string;
@@ -40,13 +37,9 @@ export declare abstract class Renderer {
      */
     abstract setBindingDebugInfo(renderElement: any, propertyName: string, propertyValue: string): void;
     abstract setElementClass(renderElement: any, className: string, isAdd: boolean): any;
-    abstract setElementStyles(renderElement: any, styles: {
-        [key: string]: string;
-    }): any;
     abstract setElementStyle(renderElement: any, styleName: string, styleValue: string): any;
     abstract invokeElementMethod(renderElement: any, methodName: string, args: any[]): any;
     abstract setText(renderNode: any, text: string): any;
-    abstract animate(element: any, startingStyles: AnimationStyles, keyframes: AnimationKeyframe[], duration: number, delay: number, easing: string): AnimationPlayer;
 }
 /**
  * Injectable service that provides a low-level interface for modifying the UI.

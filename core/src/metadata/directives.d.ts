@@ -2,7 +2,6 @@ import { Type } from '../../src/facade/lang';
 import { InjectableMetadata } from '../di/metadata';
 import { ViewEncapsulation } from './view';
 import { ChangeDetectionStrategy } from '../change_detection/constants';
-import { AnimationEntryMetadata } from '../animation/metadata';
 /**
  * Directives allow you to attach behavior to elements in the DOM.
  *
@@ -839,11 +838,10 @@ export declare class ComponentMetadata extends DirectiveMetadata {
     template: string;
     styleUrls: string[];
     styles: string[];
-    animations: AnimationEntryMetadata[];
     directives: Array<Type | any[]>;
     pipes: Array<Type | any[]>;
     encapsulation: ViewEncapsulation;
-    constructor({selector, inputs, outputs, properties, events, host, exportAs, moduleId, bindings, providers, viewBindings, viewProviders, changeDetection, queries, templateUrl, template, styleUrls, styles, animations, directives, pipes, encapsulation}?: {
+    constructor({selector, inputs, outputs, properties, events, host, exportAs, moduleId, bindings, providers, viewBindings, viewProviders, changeDetection, queries, templateUrl, template, styleUrls, styles, directives, pipes, encapsulation}?: {
         selector?: string;
         inputs?: string[];
         outputs?: string[];
@@ -866,7 +864,6 @@ export declare class ComponentMetadata extends DirectiveMetadata {
         template?: string;
         styleUrls?: string[];
         styles?: string[];
-        animations?: AnimationEntryMetadata[];
         directives?: Array<Type | any[]>;
         pipes?: Array<Type | any[]>;
         encapsulation?: ViewEncapsulation;
@@ -886,8 +883,6 @@ export declare class ComponentMetadata extends DirectiveMetadata {
  */
 export declare class PipeMetadata extends InjectableMetadata {
     name: string;
-    /** @internal */
-    _pure: boolean;
     constructor({name, pure}: {
         name: string;
         pure?: boolean;

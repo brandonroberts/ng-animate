@@ -6,7 +6,6 @@ import { Type } from '../src/facade/lang';
 export declare class TestComponentRenderer {
     insertRootElement(rootElementId: string): void;
 }
-import { AnimationEntryMetadata } from '@angular/core';
 export declare var ComponentFixtureAutoDetect: OpaqueToken;
 export declare var ComponentFixtureNoNgZone: OpaqueToken;
 /**
@@ -86,27 +85,12 @@ export declare class ComponentFixture<T> {
  */
 export declare class TestComponentBuilder {
     private _injector;
-    /** @internal */
-    _bindingsOverrides: Map<Type, any[]>;
-    /** @internal */
-    _directiveOverrides: Map<Type, Map<Type, Type>>;
-    /** @internal */
-    _templateOverrides: Map<Type, string>;
-    /** @internal */
-    _animationOverrides: Map<Type, AnimationEntryMetadata[]>;
-    /** @internal */
-    _viewBindingsOverrides: Map<Type, any[]>;
-    /** @internal */
-    _viewOverrides: Map<Type, ViewMetadata>;
     constructor(_injector: Injector);
-    /** @internal */
-    _clone(): TestComponentBuilder;
     /**
      * Overrides only the html of a {@link ComponentMetadata}.
      * All the other properties of the component's {@link ViewMetadata} are preserved.
      */
     overrideTemplate(componentType: Type, template: string): TestComponentBuilder;
-    overrideAnimations(componentType: Type, animations: AnimationEntryMetadata[]): TestComponentBuilder;
     /**
      * Overrides a component's {@link ViewMetadata}.
      */

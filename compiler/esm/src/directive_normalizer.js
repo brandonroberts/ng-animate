@@ -82,7 +82,6 @@ export class DirectiveNormalizer {
             templateUrl: templateAbsUrl,
             styles: allResolvedStyles,
             styleUrls: allStyleAbsUrls,
-            animations: templateMeta.animations,
             ngContentSelectors: visitor.ngContentSelectors
         });
     }

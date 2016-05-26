@@ -14,12 +14,11 @@ export declare const controlGroupProvider: any;
  * ```typescript
  * @Component({
  *   selector: 'my-app',
- *   directives: [FORM_DIRECTIVES],
  *   template: `
  *     <div>
  *       <h2>Angular Control &amp; ControlGroup Example</h2>
  *       <form #f="ngForm">
- *         <div ngControlGroup="name" #cg-name="form">
+ *         <div ngControlGroup="name" #cgName="ngForm">
  *           <h3>Enter your name:</h3>
  *           <p>First: <input ngControl="first" required></p>
  *           <p>Middle: <input ngControl="middle"></p>
@@ -52,8 +51,6 @@ export declare const controlGroupProvider: any;
 export declare class NgControlGroup extends ControlContainer implements OnInit, OnDestroy {
     private _validators;
     private _asyncValidators;
-    /** @internal */
-    _parent: ControlContainer;
     constructor(parent: ControlContainer, _validators: any[], _asyncValidators: any[]);
     ngOnInit(): void;
     ngOnDestroy(): void;

@@ -160,9 +160,6 @@ var WebWorkerRenderer = (function () {
             new client_message_broker_1.FnArg(isAdd, null)
         ]);
     };
-    WebWorkerRenderer.prototype.setElementStyles = function (renderElement, styles) {
-        this._runOnService('setElementStyles', [new client_message_broker_1.FnArg(renderElement, serializer_1.RenderStoreObject), new client_message_broker_1.FnArg(styles, null)]);
-    };
     WebWorkerRenderer.prototype.setElementStyle = function (renderElement, styleName, styleValue) {
         this._runOnService('setElementStyle', [
             new client_message_broker_1.FnArg(renderElement, serializer_1.RenderStoreObject),
@@ -203,10 +200,6 @@ var WebWorkerRenderer = (function () {
             _this._rootRenderer.globalEvents.unlisten(eventNameWithTarget(target, name), callback);
             _this._runOnService('listenDone', [new client_message_broker_1.FnArg(unlistenCallbackId, null)]);
         };
-    };
-    WebWorkerRenderer.prototype.animate = function (element, startingStyles, keyframes, duration, delay, easing) {
-        // TODO
-        return null;
     };
     return WebWorkerRenderer;
 }());

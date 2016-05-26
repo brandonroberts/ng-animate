@@ -39,12 +39,6 @@ var impCheckBinding = core_private_2.checkBinding;
 var impCastByValue = core_private_2.castByValue;
 var impEMPTY_ARRAY = core_private_2.EMPTY_ARRAY;
 var impEMPTY_MAP = core_private_2.EMPTY_MAP;
-var impAnimationGroupPlayer = core_private_2.AnimationGroupPlayer;
-var impAnimationSequencePlayer = core_private_2.AnimationSequencePlayer;
-var impAnimationKeyframe = core_private_2.AnimationKeyframe;
-var impAnimationStyles = core_private_2.AnimationStyles;
-var impAnimationStyleUtil = core_private_2.AnimationStyleUtil;
-var impNoOpAnimationPlayer = core_private_2.NoOpAnimationPlayer;
 var Identifiers = (function () {
     function Identifiers() {
     }
@@ -138,36 +132,6 @@ var Identifiers = (function () {
         name: 'SecurityContext',
         moduleUrl: util_1.assetUrl('core', 'security'),
         runtime: core_private_1.SecurityContext,
-    });
-    Identifiers.AnimationKeyframe = new compile_metadata_1.CompileIdentifierMetadata({
-        name: 'AnimationKeyframe',
-        moduleUrl: util_1.assetUrl('core', 'animation/animation_keyframe'),
-        runtime: impAnimationKeyframe
-    });
-    Identifiers.AnimationStyles = new compile_metadata_1.CompileIdentifierMetadata({
-        name: 'AnimationStyles',
-        moduleUrl: util_1.assetUrl('core', 'animation/animation_styles'),
-        runtime: impAnimationStyles
-    });
-    Identifiers.NoOpAnimationPlayer = new compile_metadata_1.CompileIdentifierMetadata({
-        name: 'NoOpAnimationPlayer',
-        moduleUrl: util_1.assetUrl('core', 'animation/animation_player'),
-        runtime: impNoOpAnimationPlayer
-    });
-    Identifiers.AnimationGroupPlayer = new compile_metadata_1.CompileIdentifierMetadata({
-        name: 'AnimationGroupPlayer',
-        moduleUrl: util_1.assetUrl('core', 'animation/animation_group_player'),
-        runtime: impAnimationGroupPlayer
-    });
-    Identifiers.AnimationSequencePlayer = new compile_metadata_1.CompileIdentifierMetadata({
-        name: 'AnimationSequencePlayer',
-        moduleUrl: util_1.assetUrl('core', 'animation/animation_sequence_player'),
-        runtime: impAnimationSequencePlayer
-    });
-    Identifiers.AnimationStyleUtil = new compile_metadata_1.CompileIdentifierMetadata({
-        name: 'AnimationStyleUtil',
-        moduleUrl: util_1.assetUrl('core', 'animation/animation_style_util'),
-        runtime: impAnimationStyleUtil
     });
     return Identifiers;
 }());

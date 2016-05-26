@@ -144,6 +144,5 @@ export class WorkerDomAdapter extends DomAdapter {
     getAnimationPrefix() { throw "not implemented"; }
     getTransitionEnd() { throw "not implemented"; }
     supportsAnimation() { throw "not implemented"; }
-    supportsWebAnimation() { throw "not implemented"; }
 }
 //# sourceMappingURL=worker_adapter.js.map

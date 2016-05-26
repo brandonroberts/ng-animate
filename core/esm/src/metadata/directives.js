@@ -560,7 +560,7 @@ export class DirectiveMetadata extends InjectableMetadata {
  * @ts2dart_const
  */
 export class ComponentMetadata extends DirectiveMetadata {
-    constructor({ selector, inputs, outputs, properties, events, host, exportAs, moduleId, bindings, providers, viewBindings, viewProviders, changeDetection = ChangeDetectionStrategy.Default, queries, templateUrl, template, styleUrls, styles, animations, directives, pipes, encapsulation } = {}) {
+    constructor({ selector, inputs, outputs, properties, events, host, exportAs, moduleId, bindings, providers, viewBindings, viewProviders, changeDetection = ChangeDetectionStrategy.Default, queries, templateUrl, template, styleUrls, styles, directives, pipes, encapsulation } = {}) {
         super({
             selector: selector,
             inputs: inputs,
@@ -584,7 +584,6 @@ export class ComponentMetadata extends DirectiveMetadata {
         this.pipes = pipes;
         this.encapsulation = encapsulation;
         this.moduleId = moduleId;
-        this.animations = animations;
     }
     /**
      * Defines the set of injectable objects that are visible to its view DOM children.

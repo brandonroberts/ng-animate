@@ -10,7 +10,6 @@ import { wtfCreateScope, wtfLeave } from '../profile/profile';
 import { ExpressionChangedAfterItHasBeenCheckedException, ViewDestroyedException, ViewWrappedException } from './exceptions';
 import { DebugContext } from './debug_context';
 import { ElementInjector } from './element_injector';
-import { AnimationGroupPlayer } from '../animation/animation_group_player';
 var _scope_check = wtfCreateScope(`AppView#check(ascii id)`);
 /**
  * Cost of making objects: http://jsperf.com/instantiate-size-of-object
@@ -32,7 +31,6 @@ export class AppView {
         // change detection will fail.
         this.cdState = ChangeDetectorState.NeverChecked;
         this.destroyed = false;
-        this.activeAnimations = [];
         this.ref = new ViewRef_(this);
         if (type === ViewType.COMPONENT || type === ViewType.HOST) {
             this.renderer = viewUtils.renderComponent(componentType);
@@ -40,12 +38,6 @@ export class AppView {
         else {
             this.renderer = declarationAppElement.parentView.renderer;
         }
-    }
-    registerActiveAnimation(player) {
-        this.activeAnimations.push(player);
-        player.onDone(() => {
-            ListWrapper.remove(this.activeAnimations, player);
-        });
     }
     create(context, givenProjectableNodes, rootSelectorOrNode) {
         this.context = context;
@@ -145,36 +137,12 @@ export class AppView {
         }
         this.destroyInternal();
         this.dirtyParentQueriesInternal();
-        if (this.activeAnimations.length == 0) {
-            this.renderer.destroyView(hostElement, this.allNodes);
-        }
-        else {
-            var player = new AnimationGroupPlayer(this.activeAnimations);
-            player.onDone(() => {
-                this.renderer.destroyView(hostElement, this.allNodes);
-            });
-        }
+        this.renderer.destroyView(hostElement, this.allNodes);
     }
     /**
      * Overwritten by implementations
      */
     destroyInternal() { }
-    /**
-     * Overwritten by implementations
-     */
-    detachInternal() { }
-    detach() {
-        this.detachInternal();
-        if (this.activeAnimations.length == 0) {
-            this.renderer.detachView(this.flatRootNodes);
-        }
-        else {
-            var player = new AnimationGroupPlayer(this.activeAnimations);
-            player.onDone(() => {
-                this.renderer.detachView(this.flatRootNodes);
-            });
-        }
-    }
     get changeDetectorRef() { return this.ref; }
     get parent() {
         return isPresent(this.declarationAppElement) ? this.declarationAppElement.parentView : null;
@@ -266,16 +234,6 @@ export class DebugAppView extends AppView {
         this._resetDebug();
         try {
             return super.injectorGet(token, nodeIndex, notFoundResult);
-        }
-        catch (e) {
-            this._rethrowWithContext(e, e.stack);
-            throw e;
-        }
-    }
-    detach() {
-        this._resetDebug();
-        try {
-            super.detach();
         }
         catch (e) {
             this._rethrowWithContext(e, e.stack);

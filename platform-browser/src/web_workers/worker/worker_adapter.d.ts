@@ -125,5 +125,4 @@ export declare class WorkerDomAdapter extends DomAdapter {
     getAnimationPrefix(): string;
     getTransitionEnd(): string;
     supportsAnimation(): boolean;
-    supportsWebAnimation(): boolean;
 }

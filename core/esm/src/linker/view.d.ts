@@ -6,7 +6,6 @@ import { ViewUtils } from './view_utils';
 import { ChangeDetectorRef, ChangeDetectionStrategy, ChangeDetectorState } from '../change_detection/change_detection';
 import { StaticNodeDebugInfo, DebugContext } from './debug_context';
 import { Injector } from '../di/injector';
-import { AnimationPlayer } from '../animation/animation_player';
 /**
  * Cost of making objects: http://jsperf.com/instantiate-size-of-object
  *
@@ -32,10 +31,8 @@ export declare abstract class AppView<T> {
     destroyed: boolean;
     renderer: Renderer;
     private _hasExternalHostElement;
-    activeAnimations: AnimationPlayer[];
     context: T;
     constructor(clazz: any, componentType: RenderComponentType, type: ViewType, viewUtils: ViewUtils, parentInjector: Injector, declarationAppElement: AppElement, cdMode: ChangeDetectionStrategy);
-    registerActiveAnimation(player: AnimationPlayer): void;
     create(context: T, givenProjectableNodes: Array<any | any[]>, rootSelectorOrNode: string | any): AppElement;
     /**
      * Overwritten by implementations.
@@ -57,11 +54,6 @@ export declare abstract class AppView<T> {
      * Overwritten by implementations
      */
     destroyInternal(): void;
-    /**
-     * Overwritten by implementations
-     */
-    detachInternal(): void;
-    detach(): void;
     readonly changeDetectorRef: ChangeDetectorRef;
     readonly parent: AppView<any>;
     readonly flatRootNodes: any[];
@@ -90,7 +82,6 @@ export declare class DebugAppView<T> extends AppView<T> {
     constructor(clazz: any, componentType: RenderComponentType, type: ViewType, viewUtils: ViewUtils, parentInjector: Injector, declarationAppElement: AppElement, cdMode: ChangeDetectionStrategy, staticNodeDebugInfos: StaticNodeDebugInfo[]);
     create(context: T, givenProjectableNodes: Array<any | any[]>, rootSelectorOrNode: string | any): AppElement;
     injectorGet(token: any, nodeIndex: number, notFoundResult: any): any;
-    detach(): void;
     destroyLocal(): void;
     detectChanges(throwOnChange: boolean): void;
     private _resetDebug();

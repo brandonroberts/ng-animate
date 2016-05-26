@@ -58,7 +58,7 @@ export var VIEW_ENCAPSULATION_VALUES = [ViewEncapsulation.Emulated, ViewEncapsul
  * @ts2dart_const
  */
 export class ViewMetadata {
-    constructor({ templateUrl, template, directives, pipes, encapsulation, styles, styleUrls, animations } = {}) {
+    constructor({ templateUrl, template, directives, pipes, encapsulation, styles, styleUrls } = {}) {
         this.templateUrl = templateUrl;
         this.template = template;
         this.styleUrls = styleUrls;
@@ -66,7 +66,6 @@ export class ViewMetadata {
         this.directives = directives;
         this.pipes = pipes;
         this.encapsulation = encapsulation;
-        this.animations = animations;
     }
 }
 //# sourceMappingURL=view.js.map

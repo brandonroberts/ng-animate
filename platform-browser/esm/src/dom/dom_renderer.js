@@ -1,10 +1,8 @@
 import { Inject, Injectable, ViewEncapsulation } from '@angular/core';
+import { AnimationBuilder } from '../animate/animation_builder';
 import { isPresent, isBlank, Json, RegExpWrapper, stringify, StringWrapper, isArray, isString } from '../../src/facade/lang';
-import { StringMapWrapper } from '../../src/facade/collection';
 import { BaseException } from '../../src/facade/exceptions';
 import { DomSharedStylesHost } from './shared_styles_host';
-import { AnimationDriver } from '../../core_private';
-import { AUTO_STYLE } from '@angular/core';
 import { EventManager } from './events/event_manager';
 import { DOCUMENT } from './dom_tokens';
 import { getDOM } from './dom_adapter';
@@ -15,25 +13,25 @@ const NAMESPACE_URIS =
 const TEMPLATE_COMMENT_TEXT = 'template bindings={}';
 var TEMPLATE_BINDINGS_EXP = /^template bindings=(.*)$/g;
 export class DomRootRenderer {
-    constructor(document, eventManager, sharedStylesHost, animationDriver) {
+    constructor(document, eventManager, sharedStylesHost, animate) {
         this.document = document;
         this.eventManager = eventManager;
         this.sharedStylesHost = sharedStylesHost;
-        this.animationDriver = animationDriver;
+        this.animate = animate;
         this._registeredComponents = new Map();
     }
     renderComponent(componentProto) {
         var renderer = this._registeredComponents.get(componentProto.id);
         if (isBlank(renderer)) {
-            renderer = new DomRenderer(this, componentProto, this.animationDriver);
+            renderer = new DomRenderer(this, componentProto);
             this._registeredComponents.set(componentProto.id, renderer);
         }
         return renderer;
     }
 }
 export class DomRootRenderer_ extends DomRootRenderer {
-    constructor(_document, _eventManager, sharedStylesHost, animationDriver) {
-        super(_document, _eventManager, sharedStylesHost, animationDriver);
+    constructor(_document, _eventManager, sharedStylesHost, animate) {
+        super(_document, _eventManager, sharedStylesHost, animate);
     }
 }
 DomRootRenderer_.decorators = [
@@ -43,13 +41,12 @@ DomRootRenderer_.ctorParameters = [
     { type: undefined, decorators: [{ type: Inject, args: [DOCUMENT,] },] },
     { type: EventManager, },
     { type: DomSharedStylesHost, },
-    { type: AnimationDriver, },
+    { type: AnimationBuilder, },
 ];
 export class DomRenderer {
-    constructor(_rootRenderer, componentProto, _animationDriver) {
+    constructor(_rootRenderer, componentProto) {
         this._rootRenderer = _rootRenderer;
         this.componentProto = componentProto;
-        this._animationDriver = _animationDriver;
         this._styles = _flattenStyles(componentProto.id, componentProto.styles, []);
         if (componentProto.encapsulation !== ViewEncapsulation.Native) {
             this._rootRenderer.sharedStylesHost.addStyles(this._styles);
@@ -128,10 +125,14 @@ export class DomRenderer {
     }
     attachViewAfter(node, viewRootNodes) {
         moveNodesAfterSibling(node, viewRootNodes);
+        for (let i = 0; i < viewRootNodes.length; i++)
+            this.animateNodeEnter(viewRootNodes[i]);
     }
     detachView(viewRootNodes) {
         for (var i = 0; i < viewRootNodes.length; i++) {
-            getDOM().remove(viewRootNodes[i]);
+            var node = viewRootNodes[i];
+            getDOM().remove(node);
+            this.animateNodeLeave(node);
         }
     }
     destroyView(hostElement, viewAllNodes) {
@@ -192,9 +193,6 @@ export class DomRenderer {
             getDOM().removeClass(renderElement, className);
         }
     }
-    setElementStyles(renderElement, styles) {
-        StringMapWrapper.forEach(styles, (value, prop) => this.setElementStyle(renderElement, prop, value));
-    }
     setElementStyle(renderElement, styleName, styleValue) {
         if (isPresent(styleValue)) {
             getDOM().setStyle(renderElement, styleName, stringify(styleValue));
@@ -207,23 +205,39 @@ export class DomRenderer {
         getDOM().invoke(renderElement, methodName, args);
     }
     setText(renderNode, text) { getDOM().setText(renderNode, text); }
-    animate(element, startingStyles, keyframes, duration, delay, easing) {
-        var elm = element;
-        _fillAutoStyles(elm, startingStyles, this._animationDriver);
-        keyframes.forEach(keyframe => {
-            _fillAutoStyles(elm, keyframe.styles, this._animationDriver);
-        });
-        return this._animationDriver.animate(elm, startingStyles, keyframes, duration, delay, easing);
+    /**
+     * Performs animations if necessary
+     * @param node
+     */
+    animateNodeEnter(node) {
+        if (getDOM().isElementNode(node) && getDOM().hasClass(node, 'ng-animate')) {
+            getDOM().addClass(node, 'ng-enter');
+            this._rootRenderer.animate.css()
+                .addAnimationClass('ng-enter-active')
+                .start(node)
+                .onComplete(() => { getDOM().removeClass(node, 'ng-enter'); });
+        }
     }
-}
-function _fillAutoStyles(element, styles, driver) {
-    styles.styles.forEach(styleEntry => {
-        StringMapWrapper.forEach(styleEntry, (value, prop) => {
-            if (value == AUTO_STYLE) {
-                styleEntry[prop] = driver.computeStyle(element, prop);
-            }
-        });
-    });
+    /**
+     * If animations are necessary, performs animations then removes the element; otherwise, it just
+     * removes the element.
+     * @param node
+     */
+    animateNodeLeave(node) {
+        if (getDOM().isElementNode(node) && getDOM().hasClass(node, 'ng-animate')) {
+            getDOM().addClass(node, 'ng-leave');
+            this._rootRenderer.animate.css()
+                .addAnimationClass('ng-leave-active')
+                .start(node)
+                .onComplete(() => {
+                getDOM().removeClass(node, 'ng-leave');
+                getDOM().remove(node);
+            });
+        }
+        else {
+            getDOM().remove(node);
+        }
+    }
 }
 function moveNodesAfterSibling(sibling, nodes) {
     var parent = getDOM().parentElement(sibling);

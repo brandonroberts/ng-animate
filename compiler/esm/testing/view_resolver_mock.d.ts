@@ -1,17 +1,6 @@
 import { ViewMetadata, Type } from '@angular/core';
 import { ViewResolver } from '../index';
-import { AnimationEntryMetadata } from '@angular/core';
 export declare class MockViewResolver extends ViewResolver {
-    /** @internal */
-    _views: Map<Type, ViewMetadata>;
-    /** @internal */
-    _inlineTemplates: Map<Type, string>;
-    /** @internal */
-    _animations: Map<Type, AnimationEntryMetadata[]>;
-    /** @internal */
-    _viewCache: Map<Type, ViewMetadata>;
-    /** @internal */
-    _directiveOverrides: Map<Type, Map<Type, Type>>;
     constructor();
     /**
      * Overrides the {@link ViewMetadata} for a component.
@@ -21,7 +10,6 @@ export declare class MockViewResolver extends ViewResolver {
      * Overrides the inline template for a component - other configuration remains unchanged.
      */
     setInlineTemplate(component: Type, template: string): void;
-    setAnimations(component: Type, animations: AnimationEntryMetadata[]): void;
     /**
      * Overrides a directive from the component {@link ViewMetadata}.
      */
@@ -35,13 +23,4 @@ export declare class MockViewResolver extends ViewResolver {
      * - Override the @View definition, see `setInlineTemplate`.
      */
     resolve(component: Type): ViewMetadata;
-    /**
-     * @internal
-     *
-     * Once a component has been compiled, the AppProtoView is stored in the compiler cache.
-     *
-     * Then it should not be possible to override the component configuration after the component
-     * has been compiled.
-     */
-    _checkOverrideable(component: Type): void;
 }

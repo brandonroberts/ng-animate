@@ -66,7 +66,7 @@ export class AppElement {
         if (view.type === ViewType.COMPONENT) {
             throw new BaseException(`Component views can't be moved!`);
         }
-        view.detach();
+        view.renderer.detachView(view.flatRootNodes);
         view.removeFromContentChildren(this);
         return view;
     }

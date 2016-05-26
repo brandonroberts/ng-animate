@@ -71,8 +71,7 @@ var ViewResolver = (function () {
                     pipes: compMeta.pipes,
                     encapsulation: compMeta.encapsulation,
                     styles: compMeta.styles,
-                    styleUrls: compMeta.styleUrls,
-                    animations: compMeta.animations
+                    styleUrls: compMeta.styleUrls
                 });
             }
         }

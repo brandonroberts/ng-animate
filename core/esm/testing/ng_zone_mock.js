@@ -5,14 +5,11 @@ export class MockNgZone extends NgZone {
         super({ enableLongStackTrace: false });
         /** @internal */
         this._mockOnStable = new EventEmitter(false);
-        this._mockOnMicrotaskEmpty = new EventEmitter(false);
     }
     get onStable() { return this._mockOnStable; }
-    get onMicrotaskEmpty() { return this._mockOnMicrotaskEmpty; }
     run(fn) { return fn(); }
     runOutsideAngular(fn) { return fn(); }
     simulateZoneExit() { ObservableWrapper.callNext(this.onStable, null); }
-    simulateMicrotaskEmpty() { ObservableWrapper.callNext(this.onMicrotaskEmpty, null); }
 }
 MockNgZone.decorators = [
     { type: Injectable },

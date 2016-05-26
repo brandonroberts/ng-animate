@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v2.0.0-rc.1
+ * @license AngularJS v$$ANGULAR_VERSION$$
  * (c) 2010-2016 Google, Inc. https://angular.io/
  * License: MIT
  */
@@ -431,53 +431,53 @@ var __extends = (this && this.__extends) || function (d, b) {
      *
      * Once a reference implementation of the spec is available, switch to it.
      */
-    var EventEmitter = (function (_super) {
-        __extends(EventEmitter, _super);
+    var EventEmitter$1 = (function (_super) {
+        __extends(EventEmitter$1, _super);
         /**
          * Creates an instance of [EventEmitter], which depending on [isAsync],
          * delivers events synchronously or asynchronously.
          */
-        function EventEmitter(isAsync) {
+        function EventEmitter$1(isAsync) {
             if (isAsync === void 0) { isAsync = true; }
             _super.call(this);
-            this._isAsync = isAsync;
+            this.__isAsync = isAsync;
         }
-        EventEmitter.prototype.emit = function (value) { _super.prototype.next.call(this, value); };
+        EventEmitter$1.prototype.emit = function (value) { _super.prototype.next.call(this, value); };
         /**
          * @deprecated - use .emit(value) instead
          */
-        EventEmitter.prototype.next = function (value) { _super.prototype.next.call(this, value); };
-        EventEmitter.prototype.subscribe = function (generatorOrNext, error, complete) {
+        EventEmitter$1.prototype.next = function (value) { _super.prototype.next.call(this, value); };
+        EventEmitter$1.prototype.subscribe = function (generatorOrNext, error, complete) {
             var schedulerFn;
             var errorFn = function (err) { return null; };
             var completeFn = function () { return null; };
             if (generatorOrNext && typeof generatorOrNext === 'object') {
-                schedulerFn = this._isAsync ? function (value) { setTimeout(function () { return generatorOrNext.next(value); }); } :
+                schedulerFn = this.__isAsync ? function (value) { setTimeout(function () { return generatorOrNext.next(value); }); } :
                     function (value) { generatorOrNext.next(value); };
                 if (generatorOrNext.error) {
-                    errorFn = this._isAsync ? function (err) { setTimeout(function () { return generatorOrNext.error(err); }); } :
+                    errorFn = this.__isAsync ? function (err) { setTimeout(function () { return generatorOrNext.error(err); }); } :
                         function (err) { generatorOrNext.error(err); };
                 }
                 if (generatorOrNext.complete) {
-                    completeFn = this._isAsync ? function () { setTimeout(function () { return generatorOrNext.complete(); }); } :
+                    completeFn = this.__isAsync ? function () { setTimeout(function () { return generatorOrNext.complete(); }); } :
                         function () { generatorOrNext.complete(); };
                 }
             }
             else {
-                schedulerFn = this._isAsync ? function (value) { setTimeout(function () { return generatorOrNext(value); }); } :
+                schedulerFn = this.__isAsync ? function (value) { setTimeout(function () { return generatorOrNext(value); }); } :
                     function (value) { generatorOrNext(value); };
                 if (error) {
                     errorFn =
-                        this._isAsync ? function (err) { setTimeout(function () { return error(err); }); } : function (err) { error(err); };
+                        this.__isAsync ? function (err) { setTimeout(function () { return error(err); }); } : function (err) { error(err); };
                 }
                 if (complete) {
                     completeFn =
-                        this._isAsync ? function () { setTimeout(function () { return complete(); }); } : function () { complete(); };
+                        this.__isAsync ? function () { setTimeout(function () { return complete(); }); } : function () { complete(); };
                 }
             }
             return _super.prototype.subscribe.call(this, schedulerFn, errorFn, completeFn);
         };
-        return EventEmitter;
+        return EventEmitter$1;
     }(rxjs_Subject.Subject));
     var Map$1 = global$1.Map;
     var Set$1 = global$1.Set;
@@ -825,8 +825,9 @@ var __extends = (this && this.__extends) || function (d, b) {
     var ObservableStrategy = (function () {
         function ObservableStrategy() {
         }
-        ObservableStrategy.prototype.createSubscription = function (async, updateLatestValue) {
-            return ObservableWrapper.subscribe(async, updateLatestValue, function (e) { throw e; });
+        ObservableStrategy.prototype.createSubscription = function (async, updateLatestValue, onError) {
+            if (onError === void 0) { onError = function (e) { throw e; }; }
+            return ObservableWrapper.subscribe(async, updateLatestValue, onError);
         };
         ObservableStrategy.prototype.dispose = function (subscription) { ObservableWrapper.dispose(subscription); };
         ObservableStrategy.prototype.onDestroy = function (subscription) { ObservableWrapper.dispose(subscription); };
@@ -835,8 +836,9 @@ var __extends = (this && this.__extends) || function (d, b) {
     var PromiseStrategy = (function () {
         function PromiseStrategy() {
         }
-        PromiseStrategy.prototype.createSubscription = function (async, updateLatestValue) {
-            return async.then(updateLatestValue);
+        PromiseStrategy.prototype.createSubscription = function (async, updateLatestValue, onError) {
+            if (onError === void 0) { onError = function (e) { throw e; }; }
+            return async.then(updateLatestValue, onError);
         };
         PromiseStrategy.prototype.dispose = function (subscription) { };
         PromiseStrategy.prototype.onDestroy = function (subscription) { };
@@ -862,17 +864,17 @@ var __extends = (this && this.__extends) || function (d, b) {
                 this._dispose();
             }
         };
-        AsyncPipe.prototype.transform = function (obj) {
+        AsyncPipe.prototype.transform = function (obj, onError) {
             if (isBlank(this._obj)) {
                 if (isPresent(obj)) {
-                    this._subscribe(obj);
+                    this._subscribe(obj, onError);
                 }
                 this._latestReturnedValue = this._latestValue;
                 return this._latestValue;
             }
             if (obj !== this._obj) {
                 this._dispose();
-                return this.transform(obj);
+                return this.transform(obj, onError);
             }
             if (this._latestValue === this._latestReturnedValue) {
                 return this._latestReturnedValue;
@@ -883,11 +885,11 @@ var __extends = (this && this.__extends) || function (d, b) {
             }
         };
         /** @internal */
-        AsyncPipe.prototype._subscribe = function (obj) {
+        AsyncPipe.prototype._subscribe = function (obj, onError) {
             var _this = this;
             this._obj = obj;
             this._strategy = this._selectStrategy(obj);
-            this._subscription = this._strategy.createSubscription(obj, function (value) { return _this._updateLatestValue(obj, value); });
+            this._subscription = this._strategy.createSubscription(obj, function (value) { return _this._updateLatestValue(obj, value); }, onError);
         };
         /** @internal */
         AsyncPipe.prototype._selectStrategy = function (obj) {
@@ -1909,13 +1911,6 @@ var __extends = (this && this.__extends) || function (d, b) {
         'cases': [{ type: _angular_core.ContentChildren, args: [NgPluralCase,] },],
         'ngPlural': [{ type: _angular_core.Input },],
     };
-    // TS does not have Observables
-    /**
-     * This module exists in Dart, but not in Typescript. This exported symbol
-     * is only here to help Typescript think this is a module.
-     * @internal
-     */
-    var workaround_empty_observable_list_diff;
     /**
      * A collection of Angular core directives that are likely to be used in each and every Angular
      * application.
@@ -2197,8 +2192,8 @@ var __extends = (this && this.__extends) || function (d, b) {
         };
         /** @internal */
         AbstractControl.prototype._initObservables = function () {
-            this._valueChanges = new EventEmitter();
-            this._statusChanges = new EventEmitter();
+            this._valueChanges = new EventEmitter$1();
+            this._statusChanges = new EventEmitter$1();
         };
         AbstractControl.prototype._calculateStatus = function () {
             if (isPresent(this._errors))
@@ -2730,7 +2725,7 @@ var __extends = (this && this.__extends) || function (d, b) {
                     // https://github.com/angular/angular/issues/3011 is implemented
                     // selector: '[ngControl],[ngModel],[ngFormControl]',
                     host: { '(input)': 'onChange($event.target.value)', '(blur)': 'onTouched()' },
-                    bindings: [DEFAULT_VALUE_ACCESSOR]
+                    providers: [DEFAULT_VALUE_ACCESSOR]
                 },] },
     ];
     DefaultValueAccessor.ctorParameters = [
@@ -2766,7 +2761,7 @@ var __extends = (this && this.__extends) || function (d, b) {
                         '(input)': 'onChange($event.target.value)',
                         '(blur)': 'onTouched()'
                     },
-                    bindings: [NUMBER_VALUE_ACCESSOR]
+                    providers: [NUMBER_VALUE_ACCESSOR]
                 },] },
     ];
     NumberValueAccessor.ctorParameters = [
@@ -3123,7 +3118,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             this._validators = _validators;
             this._asyncValidators = _asyncValidators;
             /** @internal */
-            this.update = new EventEmitter();
+            this.update = new EventEmitter$1();
             this._added = false;
             this.valueAccessor = selectValueAccessor(this, valueAccessors);
         }
@@ -3172,7 +3167,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     NgControlName.decorators = [
         { type: _angular_core.Directive, args: [{
                     selector: '[ngControl]',
-                    bindings: [controlNameBinding],
+                    providers: [controlNameBinding],
                     inputs: ['name: ngControl', 'model: ngModel'],
                     outputs: ['update: ngModelChange'],
                     exportAs: 'ngForm'
@@ -3195,7 +3190,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             _super.call(this);
             this._validators = _validators;
             this._asyncValidators = _asyncValidators;
-            this.update = new EventEmitter();
+            this.update = new EventEmitter$1();
             this.valueAccessor = selectValueAccessor(this, valueAccessors);
         }
         NgFormControl.prototype.ngOnChanges = function (changes) {
@@ -3240,7 +3235,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     NgFormControl.decorators = [
         { type: _angular_core.Directive, args: [{
                     selector: '[ngFormControl]',
-                    bindings: [formControlBinding],
+                    providers: [formControlBinding],
                     inputs: ['form: ngFormControl', 'model: ngModel'],
                     outputs: ['update: ngModelChange'],
                     exportAs: 'ngForm'
@@ -3266,7 +3261,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             this._control = new Control();
             /** @internal */
             this._added = false;
-            this.update = new EventEmitter();
+            this.update = new EventEmitter$1();
             this.valueAccessor = selectValueAccessor(this, valueAccessors);
         }
         NgModel.prototype.ngOnChanges = function (changes) {
@@ -3309,7 +3304,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     NgModel.decorators = [
         { type: _angular_core.Directive, args: [{
                     selector: '[ngModel]:not([ngControl]):not([ngFormControl])',
-                    bindings: [formControlBinding$1],
+                    providers: [formControlBinding$1],
                     inputs: ['model: ngModel'],
                     outputs: ['update: ngModelChange'],
                     exportAs: 'ngForm'
@@ -3397,7 +3392,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             this._asyncValidators = _asyncValidators;
             this.form = null;
             this.directives = [];
-            this.ngSubmit = new EventEmitter();
+            this.ngSubmit = new EventEmitter$1();
         }
         NgFormModel.prototype.ngOnChanges = function (changes) {
             this._checkFormPresent();
@@ -3468,7 +3463,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     NgFormModel.decorators = [
         { type: _angular_core.Directive, args: [{
                     selector: '[ngFormModel]',
-                    bindings: [formDirectiveProvider],
+                    providers: [formDirectiveProvider],
                     inputs: ['form: ngFormModel'],
                     host: { '(submit)': 'onSubmit()' },
                     outputs: ['ngSubmit'],
@@ -3485,7 +3480,7 @@ var __extends = (this && this.__extends) || function (d, b) {
         __extends(NgForm, _super);
         function NgForm(validators, asyncValidators) {
             _super.call(this);
-            this.ngSubmit = new EventEmitter();
+            this.ngSubmit = new EventEmitter$1();
             this.form = new ControlGroup({}, null, composeValidators(validators), composeAsyncValidators(asyncValidators));
         }
         Object.defineProperty(NgForm.prototype, "formDirective", {
@@ -3573,7 +3568,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     NgForm.decorators = [
         { type: _angular_core.Directive, args: [{
                     selector: 'form:not([ngNoForm]):not([ngFormModel]),ngForm,[ngForm]',
-                    bindings: [formDirectiveProvider$1],
+                    providers: [formDirectiveProvider$1],
                     host: {
                         '(submit)': 'onSubmit()',
                     },
@@ -4017,7 +4012,7 @@ var __extends = (this && this.__extends) || function (d, b) {
             var _this = this;
             this.platformStrategy = platformStrategy;
             /** @internal */
-            this._subject = new EventEmitter();
+            this._subject = new _angular_core.EventEmitter();
             var browserBaseHref = this.platformStrategy.getBaseHref();
             this._baseHref = Location.stripTrailingSlash(_stripIndexHtml(browserBaseHref));
             this.platformStrategy.onPopState(function (ev) {
@@ -4028,6 +4023,13 @@ var __extends = (this && this.__extends) || function (d, b) {
          * Returns the normalized URL path.
          */
         Location.prototype.path = function () { return this.normalize(this.platformStrategy.path()); };
+        /**
+         * Normalizes the given path and compares to the current normalized path.
+         */
+        Location.prototype.isCurrentPathEqualTo = function (path, query) {
+            if (query === void 0) { query = ''; }
+            return this.path() == this.normalize(path + Location.normalizeQueryParams(query));
+        };
         /**
          * Given a string representing a URL, returns the normalized URL path without leading or
          * trailing slashes
@@ -4267,7 +4269,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     exports.NgPluralCase = NgPluralCase;
     exports.NgLocalization = NgLocalization;
     exports.CORE_DIRECTIVES = CORE_DIRECTIVES;
-    exports.workaround_empty_observable_list_diff = workaround_empty_observable_list_diff;
     exports.FORM_PROVIDERS = FORM_PROVIDERS;
     exports.FORM_BINDINGS = FORM_BINDINGS;
     exports.AbstractControl = AbstractControl;

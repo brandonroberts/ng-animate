@@ -24,10 +24,6 @@ export declare abstract class DomAdapter {
     attrToPropMap: {
         [key: string]: string;
     };
-    /** @internal */
-    _attrToPropMap: {
-        [key: string]: string;
-    };
     abstract parse(templateHtml: string): any;
     abstract query(selector: string): any;
     abstract querySelector(el: any, selector: string): HTMLElement;
@@ -131,7 +127,6 @@ export declare abstract class DomAdapter {
     abstract setGlobalVar(name: string, value: any): any;
     abstract requestAnimationFrame(callback: any): number;
     abstract cancelAnimationFrame(id: any): any;
-    abstract supportsWebAnimation(): boolean;
     abstract performanceNow(): number;
     abstract getAnimationPrefix(): string;
     abstract getTransitionEnd(): string;

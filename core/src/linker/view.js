@@ -16,7 +16,6 @@ var profile_1 = require('../profile/profile');
 var exceptions_1 = require('./exceptions');
 var debug_context_1 = require('./debug_context');
 var element_injector_1 = require('./element_injector');
-var animation_group_player_1 = require('../animation/animation_group_player');
 var _scope_check = profile_1.wtfCreateScope("AppView#check(ascii id)");
 /**
  * Cost of making objects: http://jsperf.com/instantiate-size-of-object
@@ -38,7 +37,6 @@ var AppView = (function () {
         // change detection will fail.
         this.cdState = change_detection_1.ChangeDetectorState.NeverChecked;
         this.destroyed = false;
-        this.activeAnimations = [];
         this.ref = new view_ref_1.ViewRef_(this);
         if (type === view_type_1.ViewType.COMPONENT || type === view_type_1.ViewType.HOST) {
             this.renderer = viewUtils.renderComponent(componentType);
@@ -47,13 +45,6 @@ var AppView = (function () {
             this.renderer = declarationAppElement.parentView.renderer;
         }
     }
-    AppView.prototype.registerActiveAnimation = function (player) {
-        var _this = this;
-        this.activeAnimations.push(player);
-        player.onDone(function () {
-            collection_1.ListWrapper.remove(_this.activeAnimations, player);
-        });
-    };
     AppView.prototype.create = function (context, givenProjectableNodes, rootSelectorOrNode) {
         this.context = context;
         var projectableNodes;
@@ -143,7 +134,6 @@ var AppView = (function () {
         this.destroyed = true;
     };
     AppView.prototype.destroyLocal = function () {
-        var _this = this;
         var hostElement = this.type === view_type_1.ViewType.COMPONENT ? this.declarationAppElement.nativeElement : null;
         for (var i = 0; i < this.disposables.length; i++) {
             this.disposables[i]();
@@ -153,37 +143,12 @@ var AppView = (function () {
         }
         this.destroyInternal();
         this.dirtyParentQueriesInternal();
-        if (this.activeAnimations.length == 0) {
-            this.renderer.destroyView(hostElement, this.allNodes);
-        }
-        else {
-            var player = new animation_group_player_1.AnimationGroupPlayer(this.activeAnimations);
-            player.onDone(function () {
-                _this.renderer.destroyView(hostElement, _this.allNodes);
-            });
-        }
+        this.renderer.destroyView(hostElement, this.allNodes);
     };
     /**
      * Overwritten by implementations
      */
     AppView.prototype.destroyInternal = function () { };
-    /**
-     * Overwritten by implementations
-     */
-    AppView.prototype.detachInternal = function () { };
-    AppView.prototype.detach = function () {
-        var _this = this;
-        this.detachInternal();
-        if (this.activeAnimations.length == 0) {
-            this.renderer.detachView(this.flatRootNodes);
-        }
-        else {
-            var player = new animation_group_player_1.AnimationGroupPlayer(this.activeAnimations);
-            player.onDone(function () {
-                _this.renderer.detachView(_this.flatRootNodes);
-            });
-        }
-    };
     Object.defineProperty(AppView.prototype, "changeDetectorRef", {
         get: function () { return this.ref; },
         enumerable: true,
@@ -294,16 +259,6 @@ var DebugAppView = (function (_super) {
         this._resetDebug();
         try {
             return _super.prototype.injectorGet.call(this, token, nodeIndex, notFoundResult);
-        }
-        catch (e) {
-            this._rethrowWithContext(e, e.stack);
-            throw e;
-        }
-    };
-    DebugAppView.prototype.detach = function () {
-        this._resetDebug();
-        try {
-            _super.prototype.detach.call(this);
         }
         catch (e) {
             this._rethrowWithContext(e, e.stack);

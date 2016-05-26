@@ -31,11 +31,5 @@ export declare class Identifiers {
     static EMPTY_MAP: CompileIdentifierMetadata;
     static pureProxies: CompileIdentifierMetadata[];
     static SecurityContext: CompileIdentifierMetadata;
-    static AnimationKeyframe: CompileIdentifierMetadata;
-    static AnimationStyles: CompileIdentifierMetadata;
-    static NoOpAnimationPlayer: CompileIdentifierMetadata;
-    static AnimationGroupPlayer: CompileIdentifierMetadata;
-    static AnimationSequencePlayer: CompileIdentifierMetadata;
-    static AnimationStyleUtil: CompileIdentifierMetadata;
 }
 export declare function identifierToken(identifier: CompileIdentifierMetadata): CompileTokenMetadata;

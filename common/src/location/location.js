@@ -7,7 +7,7 @@ var Location = (function () {
         var _this = this;
         this.platformStrategy = platformStrategy;
         /** @internal */
-        this._subject = new async_1.EventEmitter();
+        this._subject = new core_1.EventEmitter();
         var browserBaseHref = this.platformStrategy.getBaseHref();
         this._baseHref = Location.stripTrailingSlash(_stripIndexHtml(browserBaseHref));
         this.platformStrategy.onPopState(function (ev) {
@@ -18,6 +18,13 @@ var Location = (function () {
      * Returns the normalized URL path.
      */
     Location.prototype.path = function () { return this.normalize(this.platformStrategy.path()); };
+    /**
+     * Normalizes the given path and compares to the current normalized path.
+     */
+    Location.prototype.isCurrentPathEqualTo = function (path, query) {
+        if (query === void 0) { query = ''; }
+        return this.path() == this.normalize(path + Location.normalizeQueryParams(query));
+    };
     /**
      * Given a string representing a URL, returns the normalized URL path without leading or
      * trailing slashes
